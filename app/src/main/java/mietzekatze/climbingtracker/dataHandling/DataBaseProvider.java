@@ -180,9 +180,37 @@ public class DataBaseProvider extends ContentProvider {
         return 0;
     }
 
+    /**So far changes shall only be allowed on the MyRoutes table*/
     @Override
-    public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+    public int update(@NonNull Uri uri, @Nullable ContentValues contentValues,
+                      @Nullable String selection, @Nullable String[] selectionArgs) {
+        int nrOfupdatedRows;
+        switch (sUriMatcher.match(uri)) {
+            case SINGLEMyRoute:
+                selection = DataBaseContract.MyRoutesEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                nrOfupdatedRows = updateMyRoute(uri, contentValues, selection, selectionArgs);
+                getContext().getContentResolver().notifyChange(uri, null);
+                return nrOfupdatedRows;
+            default:
+                throw new IllegalArgumentException("Inserting is not supported for Uri " + uri);
+        }
+    }
+
+    private int updateMyRoute(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        try {
+            sanityCheck(contentValues);
+            int nrOfUpdatedRows = db.update(DataBaseContract.MyRoutesEntry.TABLE_NAME, contentValues, selection, selectionArgs);
+            Toast.makeText(this.getContext(), "Changed "+nrOfUpdatedRows+ " rows", Toast.LENGTH_SHORT).show();
+            return nrOfUpdatedRows;
+        }
+        catch (IllegalArgumentException e) {
+            //TODO: Specify handling different IllegalArgs cases
+            Toast.makeText(this.getContext(), e.getMessage() + "No pet added", Toast.LENGTH_SHORT).show();
+            return -1;
+        }
     }
 
     private void sanityCheck(ContentValues contentValues) {
@@ -190,10 +218,10 @@ public class DataBaseProvider extends ContentProvider {
         Float diff = contentValues.getAsFloat(String.valueOf(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY));
 
         if (name == null || name =="" || name.isEmpty()) {
-            throw new IllegalArgumentException("Pet requires a name");
+            throw new IllegalArgumentException("Route requires a name");
         }
         if (diff == null || diff < 0) {
-            throw new IllegalArgumentException("Pet seems to have no or negative weigth");
+            throw new IllegalArgumentException("Route seems to have no or negative difficulty");
         }
     }
 

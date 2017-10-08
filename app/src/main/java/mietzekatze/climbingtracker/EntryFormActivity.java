@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -77,6 +78,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         Intent addOrEdit = getIntent();
         routeUri = addOrEdit.getData();
         if(routeUri != null){
+            Log.i("Edit Mode routeUri: ", routeUri.toString());
             setTitle("Edit Route");
             MODE = EDIT_MODE;
             getLoaderManager().initLoader(EDIT_LOADER_ID, null, this);
@@ -103,16 +105,10 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         catch (NumberFormatException e) {
             newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY, 0);
         }
-        Uri newRouteUri = getContentResolver().insert(DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI, newRouteData);
-
-        //TODO: Remove Toast
-        //Show a toast message depending on whether or not the insertion was successful
-        if (newRouteUri == null) {
-            // If the row ID is -1, then there was an error with insertion.
-            Toast.makeText(this, "Error with saving route", Toast.LENGTH_SHORT).show();
+        if(MODE == ADD_MODE) {
+            Uri newRouteUri = getContentResolver().insert(DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI, newRouteData);
         } else {
-            // Otherwise, the insertion was successful and we can display a toast with the row ID.
-            Toast.makeText(this, "Pet saved with uri: " + newRouteUri.toString(), Toast.LENGTH_SHORT).show();
+            int changedRow = getContentResolver().update(routeUri, newRouteData, null, null);
         }
         clearFields();
     }
