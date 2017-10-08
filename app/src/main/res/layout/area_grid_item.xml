@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/fab_margin"
+    android:background="@drawable/ic_terrain_black_24dp" >
+
+    <TextView
+        android:id="@+id/area_name_slot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="20dp"
+        android:layout_marginHorizontal="40dp"
+        android:text="@string/placeholder_mountains"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:textColor="#3B7A22"/>
+
+    <TextView
+        android:id="@+id/nr_of_summits_slot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="20dp"
+        android:layout_marginHorizontal="40dp"
+        android:text="Summits 14"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:textColor="#3B7A22"/>
+
+    <TextView
+        android:id="@+id/summits_climbed_slot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="20dp"
+        android:layout_marginHorizontal="40dp"
+        android:text="Climbed: 5"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:textColor="#3B7A22"/>
+
+</LinearLayout>

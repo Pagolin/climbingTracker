@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">climbingTracker</string>
+    <string name="action_settings">Settings</string>
+    <string name="placeholder_mountains">Placeholder Mountains</string>
+    <string name="category_overview">Overview</string>
+    <string name="hint_route_name">Route Name</string>
+    <string name="hint_summit_name">Summit Name</string>
+    <string name="hint_area_name">Area Name</string>
+    <string name="category_status">Status</string>
+    <string name="category_difficulty">Difficulty</string>
+    <string name="hint_route_difficulty">Difficulty</string>
+    <string name="edntry_form_new_route">Add Route</string>
+    <string name="empty_view_title_text">Seem\'s like you haven\'t climbed before</string>
+    <string name="empty_view_subtitle_text">Let\'s climb a rock</string>
+    <string name="state_sack">Sack aufgehängt</string>
+    <string name="state_as_leader">Vorsteiger</string>
+    <string name="state_as_follower">Nachsteiger</string>
+    <string name="state_nothing">Nüscht</string>
+    <string name="saving_success">Läuft! </string>
+
+</resources>
