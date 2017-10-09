@@ -56,8 +56,8 @@ public class DataBaseContract {
 
         //define status constants
         public static final int NOT_DONE = 0;
-        public static final int DONE_AS_LEADER = 1;
-        public static final int DONE_AS_FOLLOWER = 2;
+        public static final int DONE_AS_FOLLOWER = 1;
+        public static final int DONE_AS_LEADER = 2;
         public static final int SACK = 3;
 
     }

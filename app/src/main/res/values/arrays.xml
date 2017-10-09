@@ -12,7 +12,7 @@
 -->
 <resources>
     <!-- These are the options displayed in the gender drop-down Spinner -->
-    <string-array name="array_gender_options">
+    <string-array name="array_state_options">
         <item>@string/state_nothing</item>
         <item>@string/state_as_follower</item>
         <item>@string/state_as_leader</item>

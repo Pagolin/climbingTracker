@@ -19,20 +19,20 @@ public class DataBaseHelper extends SQLiteOpenHelper {
      * Strings that defines the SQL statements to be executed to create the ares, summits and
      * paths tables
     */
-    static final String SQL_CREATE_TABLE_AREAS = "CREATE TABLE " + AreaEntry.TABLE_NAME + "("
+    static final String SQL_CREATE_TABLE_AREAS = "CREATE TABLE IF NOT EXISTS " + AreaEntry.TABLE_NAME + "("
             + AreaEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
             + AreaEntry.COLUMN_AREA_NAME + " TEXT NOT NULL UNIQUE " + ");";
 
-    static final String SQL_CREATE_TABLE_SUMMITS = "CREATE TABLE " + SummitEntry.TABLE_NAME + "("
+    static final String SQL_CREATE_TABLE_SUMMITS = "CREATE TABLE IF NOT EXISTS " + SummitEntry.TABLE_NAME + "("
             + SummitEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-            + SummitEntry.COLUMN_SUMMIT_NUMBER + " INTEGER UNIQUE AUTOINCREMENT, "
+            + SummitEntry.COLUMN_SUMMIT_NUMBER + " INTEGER, "
             + SummitEntry.COLUMN_SUMMIT_NAME + " TEXT NOT NULL,"
             + SummitEntry.COLUMN_SUMMIT_GEOTAG + " TEXT UNIQUE,"
             + SummitEntry.COLUMN_SUMMIT_AREA + " TEXT NOT NULL,"
             + "FOREIGN KEY (" + SummitEntry.COLUMN_SUMMIT_AREA
             + ") REFERENCES "+ AreaEntry.TABLE_NAME +"("+ AreaEntry.COLUMN_AREA_NAME+")" +");";
 
-    static final String SQL_CREATE_TABLE_ROUTES = "CREATE TABLE " + RoutesEntry.TABLE_NAME + "("
+    static final String SQL_CREATE_TABLE_ROUTES = "CREATE TABLE IF NOT EXISTS " + RoutesEntry.TABLE_NAME + "("
             + RoutesEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
             + RoutesEntry.COLUMN_ROUTES_NAME + " TEXT NOT NULL,"
             + RoutesEntry.COLUMN_ROUTES_STATUS + " INTEGER DEFAULT " + RoutesEntry.NOT_DONE +","
@@ -40,7 +40,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + " FOREIGN KEY(" + RoutesEntry.COLUMN_ROUTES_SUMMIT_ID
             + ") REFERENCES "+ SummitEntry.TABLE_NAME +"( "+ SummitEntry.COLUMN_SUMMIT_NUMBER+")" +");";
 
-    static final String SQL_CREATE_TABLE_MyROUTES = "CREATE TABLE " + MyRoutesEntry.TABLE_NAME + "("
+    static final String SQL_CREATE_TABLE_MyROUTES = "CREATE TABLE IF NOT EXISTS " + MyRoutesEntry.TABLE_NAME + "("
             + MyRoutesEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
             + MyRoutesEntry.COLUMN_ROUTE_NAME + " TEXT NOT NULL,"
             + MyRoutesEntry.COLUMN_ROUTE_STATUS + " INTEGER DEFAULT " + MyRoutesEntry.NOT_DONE +","

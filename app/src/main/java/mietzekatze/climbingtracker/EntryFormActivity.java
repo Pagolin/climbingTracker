@@ -65,14 +65,6 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         diffEditText = (EditText) findViewById(R.id.edit_difficulty);
         stateSpinner = (Spinner) findViewById(R.id.spinner_status);
         setupSpinner();
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.save_fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                saveRoute();
-                finish();
-            }
-        });
 
         /*Figure out the starting intent and adapt view an behaviour*/
         Intent addOrEdit = getIntent();
@@ -83,41 +75,22 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
             MODE = EDIT_MODE;
             getLoaderManager().initLoader(EDIT_LOADER_ID, null, this);
         }
-    }
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.save_fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveRoute();
+            }
+        });
 
-    private void clearFields() {
-        routeEditText.setText("");
-        summitEditText.setText("");
-        areaEditText.setText("");
-        diffEditText.setText("");
-        stateSpinner.setSelection(DataBaseContract.MyRoutesEntry.NOT_DONE);
-    }
 
-    private void saveRoute() {
-        ContentValues newRouteData = new ContentValues();
-        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_NAME, routeEditText.getText().toString().trim());
-        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_SUMMIT, summitEditText.getText().toString().trim());
-        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_AREA, areaEditText.getText().toString().trim());
-        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_STATUS, routeState);
-        try {
-            newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY, Integer.parseInt(diffEditText.getText().toString()));
-        }
-        catch (NumberFormatException e) {
-            newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY, 0);
-        }
-        if(MODE == ADD_MODE) {
-            Uri newRouteUri = getContentResolver().insert(DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI, newRouteData);
-        } else {
-            int changedRow = getContentResolver().update(routeUri, newRouteData, null, null);
-        }
-        clearFields();
     }
 
     private void setupSpinner() {
         // Create adapter for spinner. The list options are from the String array it will use
         // the spinner will use the default layout
         ArrayAdapter genderSpinnerAdapter = ArrayAdapter.createFromResource(this,
-                R.array.array_gender_options, android.R.layout.simple_spinner_item);
+                R.array.array_state_options, android.R.layout.simple_spinner_item);
 
         // Specify dropdown layout style - simple list view with 1 item per line
         genderSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
@@ -140,7 +113,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
                     } else {
                         routeState = DataBaseContract.RoutesEntry.SACK;
                     }
-
+                Log.i("stateSpinner", " Set routeState to: " + routeState);
                 }
             }
 
@@ -154,12 +127,13 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new CursorLoader(this, DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI,
-                MyROUTES_PROJECTION,null, null, null);
+        return new CursorLoader(this, routeUri,
+                MyROUTES_PROJECTION, null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        Log.i("onLoadFinished", "loaded"+ routeUri.toString());
         if(cursor.moveToFirst()) {
             int indexOfRoute = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_NAME);
             int indexOfSummit = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_SUMMIT);
@@ -184,5 +158,34 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         clearFields();
+    }
+
+    private void saveRoute() {
+        ContentValues newRouteData = new ContentValues();
+        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_NAME, routeEditText.getText().toString().trim());
+        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_SUMMIT, summitEditText.getText().toString().trim());
+        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_AREA, areaEditText.getText().toString().trim());
+        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_STATUS, routeState);
+        Log.i("saveRoute", " new routeState is " + routeState);
+        try {
+            newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY, Integer.parseInt(diffEditText.getText().toString()));
+        }
+        catch (NumberFormatException e) {
+            newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY, 0);
+        }
+        if(MODE == ADD_MODE) {
+            Uri newRouteUri = getContentResolver().insert(DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI, newRouteData);
+        } else {
+            int changedRow = getContentResolver().update(routeUri, newRouteData, null, null);
+        }
+        clearFields();
+    }
+
+    private void clearFields() {
+        routeEditText.setText("");
+        summitEditText.setText("");
+        areaEditText.setText("");
+        diffEditText.setText("");
+        stateSpinner.setSelection(DataBaseContract.MyRoutesEntry.NOT_DONE);
     }
 }
