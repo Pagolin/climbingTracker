@@ -18,4 +18,27 @@
         <item>@string/state_as_leader</item>
         <item>@string/state_sack</item>
     </string-array>
+    <string-array name="array_sax_grade_options">
+        <item>I</item>
+        <item>II</item>
+        <item>III</item>
+        <item>IV</item>
+        <item>V</item>
+        <item>VI</item>
+        <item>VIIa</item>
+        <item>VIIb</item>
+        <item>VIIc</item>
+        <item>VIIIa</item>
+        <item>VIIIb</item>
+        <item>VIIIc</item>
+        <item>IXa</item>
+        <item>IXb</item>
+        <item>IXc</item>
+        <item>Xa</item>
+        <item>Xb</item>
+        <item>Xc</item>
+        <item>XIa</item>
+        <item>XIb</item>
+        <item>XIc</item>
+    </string-array>
 </resources>

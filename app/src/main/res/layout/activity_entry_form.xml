@@ -107,6 +107,34 @@
 
         </RelativeLayout>
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/container_grades"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Label -->
+        <TextView
+            android:text="@string/category_grade"
+            style="@style/CategoryStyle" />
+            <!-- Weight field -->
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:orientation="vertical">
+
+            <!-- Grade drop-down spinner -->
+            <Spinner
+                android:id="@+id/spinner_grade"
+                android:layout_height="48dp"
+                android:layout_width="wrap_content"
+                android:paddingRight="16dp"
+                android:spinnerMode="dropdown"/>
+        </LinearLayout>
+
+
+    </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/save_fab"

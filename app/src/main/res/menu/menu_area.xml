@@ -3,9 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="mietzekatze.climbingtracker.OverviewActivity">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/set_scale_saxonian"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:title="@string/set_scale_saxonian"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/set_scale_french"
+        android:orderInCategory="100"
+        android:title="@string/set_scale_french"
         app:showAsAction="never" />
 
 </menu>

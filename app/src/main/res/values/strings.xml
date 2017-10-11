@@ -17,5 +17,12 @@
     <string name="state_as_follower">Nachsteiger</string>
     <string name="state_nothing">Nüscht</string>
     <string name="saving_success">Läuft! </string>
+    <string name="action_delete_item">Delete Route</string>
+    <string name="unsaved_changes_dialog_msg">You have unsaved changes</string>
+    <string name="discard">Forgett</string>
+    <string name="keep_editing">keep editing</string>
+    <string name="set_scale_saxonian">Sächsische Skala</string>
+    <string name="set_scale_french">Französische Skala</string>
+    <string name="category_grade">Grade</string>
 
 </resources>
