@@ -10,7 +10,11 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
+
+import java.util.List;
+import java.util.Map;
 
 import mietzekatze.climbingtracker.R;
 
@@ -29,6 +33,8 @@ public class DataBaseProvider extends ContentProvider {
     private static final int SINGLERoute = 303;
     private static final int ALLMyRoutes = 400;
     private static final int SINGLEMyRoute = 404;
+    private static final int ALLGrades = 500;
+    private static final int SINGLEGrade = 505;
 
     // Creates a UriMatcher object. and define in the static{}-statement all uri's to be recognized
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -38,19 +44,21 @@ public class DataBaseProvider extends ContentProvider {
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_AREAS, ALLAreas);
         //uri contains the path to areas_table plus any row number -> uri response code SINGLEArea
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_AREAS + "/#", SINGLEArea);
-
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_SUMMITS, ALLSummits);
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_SUMMITS + "/#", SINGLESummit);
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_ROUTES, ALLRoutes);
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_ROUTES + "/#", SINGLERoute);
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_MyROUTES, ALLMyRoutes);
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_MyROUTES + "/#", SINGLEMyRoute);
+        sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_GRADES, ALLGrades);
+        sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_GRADES + "/#", SINGLEGrade);
 
     }
 
     @Override
     public boolean onCreate() {
-        dbHelper = new DataBaseHelper(this.getContext());
+        Map<String, List<String>> scalesAndGrades = HTMLParser.parseHTMLTable(this.getContext(), R.raw.grades_table);
+        dbHelper = new DataBaseHelper(this.getContext(), scalesAndGrades);
         return true;
     }
 
@@ -99,6 +107,15 @@ public class DataBaseProvider extends ContentProvider {
                 selection = "_ID = ?";
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
                 cursor = db.query(DataBaseContract.MyRoutesEntry.TABLE_NAME, projection, selection,
+                        selectionArgs, null, null, sortOrder); break;
+            case ALLGrades:
+                if (TextUtils.isEmpty(sortOrder)) sortOrder = "_ID ASC";
+                cursor = db.query(DataBaseContract.GradeEntry.TABLE_NAME, projection, selection,
+                        selectionArgs, null, null, sortOrder); break;
+            case SINGLEGrade:
+                selection = "_ID = ?";
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                cursor = db.query(DataBaseContract.GradeEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
             default:
                 throw new IllegalArgumentException("Can't parse unknown Uri" + uri);
@@ -154,7 +171,7 @@ public class DataBaseProvider extends ContentProvider {
         }
         catch (IllegalArgumentException e) {
             //TODO: Specify handling different IllegalArgs cases
-            Toast.makeText(this.getContext(), e.getMessage() + "No pet added", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this.getContext(), e.getMessage() + " No route added", Toast.LENGTH_SHORT).show();
             return null;
         }
     }
@@ -176,8 +193,24 @@ public class DataBaseProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+    public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        int rowsDeleted;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case SINGLEMyRoute:
+                selection = DataBaseContract.MyRoutesEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                rowsDeleted = database.delete(DataBaseContract.MyRoutesEntry.TABLE_NAME, selection, selectionArgs);
+                getContext().getContentResolver().notifyChange(uri, null);
+                Log.i("DBProvider: ", "deleted rows: "+ rowsDeleted);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Deletion is not supported for " + uri);
+        }
+        if(rowsDeleted != 0) {getContext().getContentResolver().notifyChange(uri, null);}
+        return rowsDeleted;
     }
 
     /**So far changes shall only be allowed on the MyRoutes table*/
@@ -208,10 +241,11 @@ public class DataBaseProvider extends ContentProvider {
         }
         catch (IllegalArgumentException e) {
             //TODO: Specify handling different IllegalArgs cases
-            Toast.makeText(this.getContext(), e.getMessage() + "No pet added", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this.getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
             return -1;
         }
     }
+
 
     private void sanityCheck(ContentValues contentValues) {
         String name = contentValues.getAsString(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_NAME);

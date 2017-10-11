@@ -11,26 +11,30 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
+import mietzekatze.climbingtracker.dataHandling.DataBaseContract.*;
+import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 
 public class OverviewActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
-    public static String[] MyROUTES_PROJECTION = {  DataBaseContract.MyRoutesEntry._ID,
-            DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_NAME,
-            DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_SUMMIT,
-            DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_AREA,
-            DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_STATUS,
-            DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY};
+    public static String[] MyROUTES_PROJECTION = {  MyRoutesEntry._ID,
+            MyRoutesEntry.COLUMN_ROUTE_NAME,
+            MyRoutesEntry.COLUMN_ROUTE_SUMMIT,
+            MyRoutesEntry.COLUMN_ROUTE_AREA,
+            MyRoutesEntry.COLUMN_ROUTE_STATUS,
+            MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY};
+
 
     MyRoutesCursorAdapter myRoutesCursorAdapter;
 
     private static int CURSOR_LOADER_ID = 0;
+    private static String gradePreference;
 
 
     @Override
@@ -52,7 +56,7 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
         routesList.setEmptyView(findViewById(R.id.empty_view));
 
         //Instanciate the contact to the underlying db and connect it to the list view
-        Cursor standardCursor = getContentResolver().query(DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI,
+        Cursor standardCursor = getContentResolver().query(MyRoutesEntry.MyROUTES_CONTENT_URI,
                 MyROUTES_PROJECTION, null, null, null);
         myRoutesCursorAdapter = new MyRoutesCursorAdapter(this, standardCursor);
         routesList.setAdapter(myRoutesCursorAdapter);
@@ -61,13 +65,12 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
         routesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long itemId) {
-                Uri petUri = ContentUris.withAppendedId(DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI, itemId);
+                Uri routeUri = ContentUris.withAppendedId(MyRoutesEntry.MyROUTES_CONTENT_URI, itemId);
                 Intent editPetIntent = new Intent(OverviewActivity.this, EntryFormActivity.class);
-                editPetIntent.setData(petUri);
+                editPetIntent.setData(routeUri);
                 startActivity(editPetIntent);
             }
         });
-
     }
 
     @Override
@@ -83,9 +86,17 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.set_scale_saxonian) {
+            Cursor sC = getContentResolver().query(
+                    GradeEntry.GRADES_CONTENT_URI, new String[]{GradeEntry.COLUMN_SAXONIAN},null, null, null);
+            Log.i("Overview:", "Entries in SAxonian Scale: " + sC.getCount());
+            sC.close();
+            return true;
+        } else if(id == R.id.set_scale_french) {
+            Cursor sC = getContentResolver().query(
+                    GradeEntry.GRADES_CONTENT_URI, new String[]{GradeEntry.COLUMN_FRENCH},null, null, null);
+            Log.i("Overview:", "Entries in French Scale: " + sC.getCount());
+            sC.close();
             return true;
         }
 
@@ -94,7 +105,7 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new CursorLoader(this, DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI,
+        return new CursorLoader(this, MyRoutesEntry.MyROUTES_CONTENT_URI,
                 MyROUTES_PROJECTION,null, null, null);
     }
 
