@@ -2,9 +2,11 @@ package mietzekatze.climbingtracker;
 
 import android.app.LoaderManager;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +20,11 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract.*;
 import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 
@@ -30,12 +37,16 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
             MyRoutesEntry.COLUMN_ROUTE_STATUS,
             MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY};
 
-
+    Cursor myRoutesCursor;
     MyRoutesCursorAdapter myRoutesCursorAdapter;
 
-    private static int CURSOR_LOADER_ID = 0;
-    private static String gradePreference;
+    //TODO: Use sharedPreferences for scale Preference
 
+    private static int CURSOR_LOADER_ID = 0;
+    private static final String SCALE_PREFERENCE_KEY = "Grade Preference";
+    public static String currentScalePreference = DataBaseContract.SCALE_SAX;
+    public SharedPreferences sharedPref;
+    private ListView routesList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,13 +63,13 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
             }
         });
 
-        ListView routesList = (ListView) findViewById(R.id.recent_routes_list);
+        routesList = (ListView) findViewById(R.id.recent_routes_list);
         routesList.setEmptyView(findViewById(R.id.empty_view));
 
         //Instanciate the contact to the underlying db and connect it to the list view
-        Cursor standardCursor = getContentResolver().query(MyRoutesEntry.MyROUTES_CONTENT_URI,
+        myRoutesCursor = getContentResolver().query(MyRoutesEntry.MyROUTES_CONTENT_URI,
                 MyROUTES_PROJECTION, null, null, null);
-        myRoutesCursorAdapter = new MyRoutesCursorAdapter(this, standardCursor);
+        myRoutesCursorAdapter = new MyRoutesCursorAdapter(this, myRoutesCursor);
         routesList.setAdapter(myRoutesCursorAdapter);
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
@@ -66,40 +77,43 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long itemId) {
                 Uri routeUri = ContentUris.withAppendedId(MyRoutesEntry.MyROUTES_CONTENT_URI, itemId);
-                Intent editPetIntent = new Intent(OverviewActivity.this, EntryFormActivity.class);
-                editPetIntent.setData(routeUri);
-                startActivity(editPetIntent);
+                Intent editRouteIntent = new Intent(OverviewActivity.this, EntryFormActivity.class);
+                editRouteIntent.setData(routeUri);
+                startActivity(editRouteIntent);
             }
         });
+
+         Map<String,List<String>> testMap  = HTMLParser.parseHTMLTable(this, R.raw.areas);
+        Log.i("OverivewActivity", "parsed Map:" + testMap.toString());
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_area, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.set_scale_saxonian) {
-            Cursor sC = getContentResolver().query(
-                    GradeEntry.GRADES_CONTENT_URI, new String[]{GradeEntry.COLUMN_SAXONIAN},null, null, null);
-            Log.i("Overview:", "Entries in SAxonian Scale: " + sC.getCount());
-            sC.close();
+            currentScalePreference = DataBaseContract.SCALE_SAX;
+            //TODO: Find less brute force solution to rerender listview when settings change
+            recreate();
             return true;
         } else if(id == R.id.set_scale_french) {
-            Cursor sC = getContentResolver().query(
-                    GradeEntry.GRADES_CONTENT_URI, new String[]{GradeEntry.COLUMN_FRENCH},null, null, null);
-            Log.i("Overview:", "Entries in French Scale: " + sC.getCount());
-            sC.close();
+            currentScalePreference = DataBaseContract.SCALE_FRENCH;
+            recreate();
+            return true;
+        } else if(id == R.id.set_scale_sierra) {
+            currentScalePreference = DataBaseContract.SCALE_SIERRA;
+            recreate();
+            return true;
+        } else if(id == R.id.set_scale_uiaa) {
+            currentScalePreference = DataBaseContract.SCALE_UIAA;
+            recreate();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 

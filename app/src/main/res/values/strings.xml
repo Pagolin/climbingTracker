@@ -24,5 +24,8 @@
     <string name="set_scale_saxonian">Sächsische Skala</string>
     <string name="set_scale_french">Französische Skala</string>
     <string name="category_grade">Grade</string>
+    <string name="preference_file_key">Scale_preference</string>
+    <string name="set_scale_sierra">Sierra Scala</string>
+    <string name="set_scale_uiaa">UIAA Scala</string>
 
 </resources>

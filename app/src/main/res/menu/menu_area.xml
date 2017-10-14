@@ -12,5 +12,14 @@
         android:orderInCategory="100"
         android:title="@string/set_scale_french"
         app:showAsAction="never" />
-
+    <item
+        android:id="@+id/set_scale_sierra"
+        android:orderInCategory="100"
+        android:title="@string/set_scale_sierra"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/set_scale_uiaa"
+        android:orderInCategory="100"
+        android:title="@string/set_scale_uiaa"
+        app:showAsAction="never" />
 </menu>

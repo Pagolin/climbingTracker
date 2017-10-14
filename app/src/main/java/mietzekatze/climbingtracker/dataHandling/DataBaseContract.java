@@ -16,18 +16,13 @@ public class DataBaseContract {
     public static final String PATH_ROUTES = "routes";
     public static final String PATH_MyROUTES = "myRoutes";
     public static final String PATH_GRADES = "grades" ;
+    public static final String SCALE_SAX = "Sächsisch";
+    public static final String SCALE_FRENCH = "Französisch";
+    public static final String SCALE_UIAA = "UIAA";
+    public static final String SCALE_SIERRA = "Sierra" ;
 
     private DataBaseContract(){};
 
-    public static final class GradeEntry implements BaseColumns{
-        public static final Uri GRADES_CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_GRADES);
-        public static final String TABLE_NAME = "difficulties";
-        public static final String GRADE_ID = BaseColumns._ID;
-        public static final String COLUMN_SAXONIAN = "saxonian";
-        public static final String COLUMN_FRENCH = "french";
-        public static final String COLUMN_UIAA = "UIAA";
-        public static final String COLUMN_SIERRA = "sierra";
-    }
 
     public static final class AreaEntry implements BaseColumns{
         public static final Uri AREAS_CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_AREAS);

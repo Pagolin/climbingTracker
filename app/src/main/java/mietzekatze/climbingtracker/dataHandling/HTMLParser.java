@@ -39,7 +39,7 @@ public class HTMLParser {
         } catch (IOException e) {
             Log.e("readRaw: ", e.getMessage());
         }
-        Log.i("parsed String",htmlString);
+        Log.i("HTMLParser","parsed String:" + htmlString);
         return htmlString;
     }
 
@@ -70,7 +70,6 @@ public class HTMLParser {
             Document doc = Jsoup.parse(htmlAsString, "UTF-8");
             Element firstTable = doc.getElementsByTag("table").first();
             Elements rows = firstTable.getElementsByTag("tr");
-            Log.i("parseHTMLTable","first row" +rows.first().text());
             Elements colHeaders = rows.first().select("td");
             /*Getting the keys from the first row*/
             List<String> headers = new ArrayList<>();

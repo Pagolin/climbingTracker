@@ -33,8 +33,6 @@ public class DataBaseProvider extends ContentProvider {
     private static final int SINGLERoute = 303;
     private static final int ALLMyRoutes = 400;
     private static final int SINGLEMyRoute = 404;
-    private static final int ALLGrades = 500;
-    private static final int SINGLEGrade = 505;
 
     // Creates a UriMatcher object. and define in the static{}-statement all uri's to be recognized
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -50,15 +48,11 @@ public class DataBaseProvider extends ContentProvider {
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_ROUTES + "/#", SINGLERoute);
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_MyROUTES, ALLMyRoutes);
         sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_MyROUTES + "/#", SINGLEMyRoute);
-        sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_GRADES, ALLGrades);
-        sUriMatcher.addURI(DataBaseContract.CONTENT_AUTHORITY, DataBaseContract.PATH_GRADES + "/#", SINGLEGrade);
-
     }
 
     @Override
     public boolean onCreate() {
-        Map<String, List<String>> scalesAndGrades = HTMLParser.parseHTMLTable(this.getContext(), R.raw.grades_table);
-        dbHelper = new DataBaseHelper(this.getContext(), scalesAndGrades);
+        dbHelper = new DataBaseHelper(this.getContext());
         return true;
     }
 
@@ -107,15 +101,6 @@ public class DataBaseProvider extends ContentProvider {
                 selection = "_ID = ?";
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
                 cursor = db.query(DataBaseContract.MyRoutesEntry.TABLE_NAME, projection, selection,
-                        selectionArgs, null, null, sortOrder); break;
-            case ALLGrades:
-                if (TextUtils.isEmpty(sortOrder)) sortOrder = "_ID ASC";
-                cursor = db.query(DataBaseContract.GradeEntry.TABLE_NAME, projection, selection,
-                        selectionArgs, null, null, sortOrder); break;
-            case SINGLEGrade:
-                selection = "_ID = ?";
-                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
-                cursor = db.query(DataBaseContract.GradeEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
             default:
                 throw new IllegalArgumentException("Can't parse unknown Uri" + uri);

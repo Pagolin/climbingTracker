@@ -4,13 +4,19 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
+import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 
 /**
  * Created by lisza on 08.10.17.
@@ -19,10 +25,15 @@ import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
 public class MyRoutesCursorAdapter extends CursorAdapter {
 
     private Context context;
+    private  Map<String, List<String>> scalesAndGrades;
+    private List<String> currentScale;
 
     public MyRoutesCursorAdapter(Context context,Cursor cursor){
         super(context,cursor, 0);
         this.context = context;
+        scalesAndGrades = HTMLParser.parseHTMLTable(this.context, R.raw.grades_table_new);
+        currentScale = new ArrayList<>(scalesAndGrades.get(OverviewActivity.currentScalePreference));
+        Log.i("CursorAdapter", "Current Scale is: " + currentScale.toString());
     }
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parentView) {
@@ -49,47 +60,53 @@ public class MyRoutesCursorAdapter extends CursorAdapter {
 
         routeAndSummitField.setText(summit + ", "+ route);
         areaNameField.setText(area);
-        difficField.setText(Integer.toString(difficulty));
+        difficField.setText(currentScale.get(difficulty));
         coloredCircle.setColor(selectColor(difficulty));
     }
 
     private int selectColor(int difficulty) {
-        int diffColorResourceId;
-        int magnitudeFloor = (int) Math.floor(difficulty);
-        switch (magnitudeFloor) {
+        int gradeColorRessource;
+        int gradeNormed = norm(difficulty);
+        switch (gradeNormed) {
             case 0:
             case 1:
-                diffColorResourceId = R.color.diff1;
+                gradeColorRessource = R.color.diff1;
                 break;
             case 2:
-                diffColorResourceId = R.color.diff2;
+                gradeColorRessource = R.color.diff2;
                 break;
             case 3:
-                diffColorResourceId = R.color.diff3;
+                gradeColorRessource = R.color.diff3;
                 break;
             case 4:
-                diffColorResourceId = R.color.diff4;
+                gradeColorRessource = R.color.diff4;
                 break;
             case 5:
-                diffColorResourceId = R.color.diff5;
+                gradeColorRessource = R.color.diff5;
                 break;
             case 6:
-                diffColorResourceId = R.color.diff6;
+                gradeColorRessource = R.color.diff6;
                 break;
             case 7:
-                diffColorResourceId = R.color.diff7;
+                gradeColorRessource = R.color.diff7;
                 break;
             case 8:
-                diffColorResourceId = R.color.diff8;
+                gradeColorRessource = R.color.diff8;
                 break;
             case 9:
-                diffColorResourceId = R.color.diff9;
+                gradeColorRessource = R.color.diff9;
                 break;
             default:
-                diffColorResourceId = R.color.diff10plus;
+                gradeColorRessource = R.color.diff10plus;
                 break;
         }
-        return ContextCompat.getColor(this.context, diffColorResourceId);
+        return ContextCompat.getColor(this.context, gradeColorRessource);
+    }
+
+    private int norm(int difficulty) {
+        float countGrades = currentScale.size();
+        float relativeGrade = (difficulty/countGrades) *10;
+        return Math.round(relativeGrade);
     }
 
 

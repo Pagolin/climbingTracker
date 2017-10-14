@@ -7,10 +7,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NavUtils;
+import android.widget.FilterQueryProvider;
+import android.widget.SimpleCursorAdapter;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -21,12 +24,19 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
 import mietzekatze.climbingtracker.dataHandling.DataBaseHelper;
+import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 
 /**
  * Created by lisza on 08.10.17.
@@ -34,22 +44,20 @@ import mietzekatze.climbingtracker.dataHandling.DataBaseHelper;
 
 public class EntryFormActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
-    private EditText areaEditText;
-    private EditText summitEditText;
+    private AutoCompleteTextView areaEditText;
+    private AutoCompleteTextView summitEditText;
     private EditText routeEditText;
-    private EditText diffEditText;
     private Spinner stateSpinner;
     private Spinner gradeSpinner;
 
 
    //declare whether the entered route is just new, climbed as follower, leader or..well...with sack
     private int routeState = 0;
+    private int routeGrade = 0;
     private Uri routeUri = null;
-    private static int ADD_MODE = 0;
-    private static int EDIT_MODE = 1;
-    private static int MODE = ADD_MODE;
     private static int EDIT_LOADER_ID = 1;
     private boolean hasChanged = false;
+    private Map<String, List<String>> scalesAndGrades;
     public static String[] MyROUTES_PROJECTION = {  DataBaseContract.MyRoutesEntry._ID,
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_NAME,
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_SUMMIT,
@@ -57,6 +65,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_STATUS,
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY};
 
+    private List<String> currentScale;
     private View.OnTouchListener touchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -66,23 +75,35 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
     };
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entry_form);
+        scalesAndGrades  = HTMLParser.parseHTMLTable(this, R.raw.grades_table_new);
+        currentScale = new ArrayList<>(scalesAndGrades.get(OverviewActivity.currentScalePreference));
 
         // Find all relevant views that we will need to read user input from
-        areaEditText = (EditText) findViewById(R.id.edit_area_name);
+        areaEditText = (AutoCompleteTextView) findViewById(R.id.edit_area_name);
+        setSuggestions(areaEditText, DataBaseContract.AreaEntry.AREAS_CONTENT_URI,
+                new String[]{DataBaseContract.AreaEntry.AREA_ID, DataBaseContract.AreaEntry.COLUMN_AREA_NAME},
+                null, null,null );
         areaEditText.setOnTouchListener(touchListener);
-        summitEditText = (EditText) findViewById(R.id.edit_summit_name);
+
+        summitEditText = (AutoCompleteTextView) findViewById(R.id.edit_summit_name);
         summitEditText.setOnTouchListener(touchListener);
+        String[] summits = new String[]{"Pfeffernuss","Gugelhupf", "Schokohase", "Eierschecke","Zupfkuchen","Rumkugel"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, summits);
+        summitEditText.setAdapter(adapter);
+
         routeEditText = (EditText) findViewById(R.id.edit_route_name);
         routeEditText.setOnTouchListener(touchListener);
-        diffEditText = (EditText) findViewById(R.id.edit_difficulty);
-        diffEditText.setOnTouchListener(touchListener);
         stateSpinner = (Spinner) findViewById(R.id.spinner_status);
         stateSpinner.setOnTouchListener(touchListener);
         setupStateSpinner();
+
+
         gradeSpinner = (Spinner) findViewById(R.id.spinner_grade);
         gradeSpinner.setOnTouchListener(touchListener);
         setupGradeSpinner();
@@ -93,7 +114,6 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         if(routeUri != null){
             Log.i("Edit Mode routeUri: ", routeUri.toString());
             setTitle("Edit Route");
-            MODE = EDIT_MODE;
             getLoaderManager().initLoader(EDIT_LOADER_ID, null, this);
         }
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.save_fab);
@@ -104,6 +124,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
             }
         });
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -214,19 +235,17 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         });
     }
 
-    //TODO: query the grades table for the selected grade and store the _id as route grade
     private void setupGradeSpinner() {
-        ArrayAdapter gradeSpinnerAdapter = ArrayAdapter.createFromResource(this,
-                R.array.array_sax_grade_options, android.R.layout.simple_spinner_item);
+        ArrayAdapter gradeSpinnerAdapter = new ArrayAdapter(this,
+                android.R.layout.simple_spinner_item, currentScale);
         gradeSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
         gradeSpinner.setAdapter(gradeSpinnerAdapter);
 
-        // Set the integer mSelected to the constant values
         gradeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selection = (String) parent.getItemAtPosition(position);
-                Log.i("EntryView", "GradeSpinner clicked at" + selection);
+                routeGrade = position;
             }
 
             // Because AdapterView is an abstract class, onNothingSelected must be defined
@@ -261,7 +280,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
             routeEditText.setText(route);
             summitEditText.setText(summit);
             areaEditText.setText(area);
-            diffEditText.setText(String.valueOf(difficulty));
+            gradeSpinner.setSelection(difficulty);
             stateSpinner.setSelection(status);
         }
     }
@@ -279,13 +298,8 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_SUMMIT, summitEditText.getText().toString().trim());
         newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_AREA, areaEditText.getText().toString().trim());
         newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_STATUS, routeState);
+        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY, routeGrade);
         Log.i("saveRoute", " new routeState is " + routeState);
-        try {
-            newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY, Integer.parseInt(diffEditText.getText().toString()));
-        }
-        catch (NumberFormatException e) {
-            newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY, 0);
-        }
         if(routeUri == null) {
             newRouteUri = getContentResolver().insert(DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI, newRouteData);
         } else {
@@ -302,7 +316,46 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         routeEditText.setText("");
         summitEditText.setText("");
         areaEditText.setText("");
-        diffEditText.setText("");
         stateSpinner.setSelection(DataBaseContract.MyRoutesEntry.NOT_DONE);
+        gradeSpinner.setSelection(0);
     }
+
+    //TODO: Add param validation and move to static public context in a Utils class
+    private void setSuggestions(AutoCompleteTextView editText, final Uri tableUri,
+                                final String[] columns_Id_and_Suggestions,
+                                String selection, String[] selectionArgs, String sortOrder) {
+        /**
+         * This function retreives data from specified sql table and column and adds them as autocomplete
+         * suggestions to the given AutoCompleteTextView
+         *@param columns_Id_and_Suggestions: String[] containing 1. the name of the _id column and
+         *                                 2. name of the suggestion column in the
+         *                                 given table to retrieve a cursor on the data
+         *  */
+        final String suggestionColumnName = columns_Id_and_Suggestions[1];
+        final String[] suggestions = new String[]{suggestionColumnName};
+
+        Cursor suggCursor = getContentResolver().query(tableUri,columns_Id_and_Suggestions,
+                selection,selectionArgs, sortOrder);
+
+        SimpleCursorAdapter suggestionsAdapter = new SimpleCursorAdapter(this,
+                android.R.layout.simple_dropdown_item_1line,suggCursor,
+                suggestions,new int[]{android.R.id.text1}, 0);
+
+        suggestionsAdapter.setStringConversionColumn(suggCursor.getColumnIndex(suggestionColumnName));
+        suggestionsAdapter.setFilterQueryProvider(new FilterQueryProvider() {
+            @Override
+            public Cursor runQuery(CharSequence allreadyEnteredChars) {
+                String filterString = null, selection = null;
+                String [] selectionArgs = null;
+                if(allreadyEnteredChars!= null) {
+                    filterString = allreadyEnteredChars.toString()+"%";
+                    selection = suggestionColumnName + " LIKE ?";
+                    selectionArgs = new String[]{filterString};
+                }
+                return getContentResolver().query(tableUri,columns_Id_and_Suggestions, selection, selectionArgs, null);
+            }
+        });
+        editText.setAdapter(suggestionsAdapter);
+    }
+
 }
