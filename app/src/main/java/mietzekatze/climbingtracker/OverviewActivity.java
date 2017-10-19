@@ -2,7 +2,6 @@ package mietzekatze.climbingtracker;
 
 import android.app.LoaderManager;
 import android.content.ContentUris;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -20,7 +19,6 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -83,7 +81,7 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
             }
         });
 
-         Map<String,List<String>> testMap  = HTMLParser.parseHTMLTable(this, R.raw.areas);
+         Map<String,List<String>> testMap  = HTMLParser.parseHTMLTableToMap(this, R.raw.areas);
         Log.i("OverivewActivity", "parsed Map:" + testMap.toString());
     }
 

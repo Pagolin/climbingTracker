@@ -63,7 +63,7 @@ public class HTMLParser {
     //TODO: Chech for a smarter formate with respect to subsequent SQL
 
     @Nullable
-    public static Map<String, List<String>> parseHTMLTable(Context context, int res_id){
+    public static Map<String, List<String>> parseHTMLTableToMap(Context context, int res_id){
         Map<String, List<String>> mapHeadersToValues = new HashMap<>();
         String htmlAsString = readRaw(context, res_id);
         if(htmlAsString != null){
@@ -90,7 +90,31 @@ public class HTMLParser {
         } else {
             Log.i("HTMLParser", "could not read from raw");
         }
-        Log.i("parseHTMLTable","Entries of mapHeadersToValues "+ mapHeadersToValues.entrySet());
+        Log.i("parseHTMLTableToMap","Entries of mapHeadersToValues "+ mapHeadersToValues.entrySet());
         return mapHeadersToValues;
+    }
+
+    @Nullable
+    public static List<List<String>> parseHTMLTableToList(Context context, int res_id){
+        List<List<String>> listOfRows = new ArrayList<>();
+        String htmlAsString = readRaw(context, res_id);
+        if(htmlAsString != null){
+            Document doc = Jsoup.parse(htmlAsString, "UTF-8");
+            Element firstTable = doc.getElementsByTag("table").first();
+            Elements rows = firstTable.getElementsByTag("tr");
+            Elements colHeaders = rows.first().select("td");
+            for(Element row: rows ){
+                Elements cells = row.select("td");
+                List<String> rowValues = new ArrayList<>();
+                for(Element cell : cells){
+                    rowValues.add(cell.text());
+                }
+                listOfRows.add(rowValues);
+            }
+        } else {
+            Log.i("HTMLParser", "could not read from raw");
+        }
+        Log.i("parseHTMLTableToRows","Entries of first row "+ listOfRows.get(0));
+        return listOfRows;
     }
 }

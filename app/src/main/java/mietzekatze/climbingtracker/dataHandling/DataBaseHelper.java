@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.graphics.drawable.GradientDrawable;
+import android.os.AsyncTask;
 import android.util.Log;
 
 
@@ -12,7 +12,6 @@ import android.util.Log;
  * Created by lisza on 06.10.17.
  */
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +34,6 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     static final String SQL_CREATE_TABLE_SUMMITS = "CREATE TABLE IF NOT EXISTS " + SummitEntry.TABLE_NAME + "("
             + SummitEntry.SUMMIT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-            + SummitEntry.COLUMN_SUMMIT_NUMBER + " INTEGER, "
             + SummitEntry.COLUMN_SUMMIT_NAME + " TEXT NOT NULL,"
             + SummitEntry.COLUMN_SUMMIT_GEOTAG + " TEXT UNIQUE,"
             + SummitEntry.COLUMN_SUMMIT_AREA + " TEXT NOT NULL,"
@@ -48,7 +46,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + RoutesEntry.COLUMN_ROUTES_SUMMIT_ID + " INTEGER, "
             + RoutesEntry.COLUMN_ROUTES_DIFFICULTY + " INTEGER, "
             + " FOREIGN KEY(" + RoutesEntry.COLUMN_ROUTES_SUMMIT_ID
-            + ") REFERENCES "+ SummitEntry.TABLE_NAME +"( "+ SummitEntry.COLUMN_SUMMIT_NUMBER+")" +");";
+            + ") REFERENCES "+ SummitEntry.TABLE_NAME +"( "+ SummitEntry.SUMMIT_ID+")" +");";
 
     static final String SQL_CREATE_TABLE_MyROUTES = "CREATE TABLE IF NOT EXISTS " + MyRoutesEntry.TABLE_NAME + "("
             + MyRoutesEntry.MyROUTE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -58,14 +56,13 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + MyRoutesEntry.COLUMN_ROUTE_AREA + " TEXT,"
             + MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY+ " INTEGER" +");";
 
-    //Data map on difficulty grades in different scales from local as html file
-    Map<String, List<String>> gradesMap;
     Map<String, List<String>> areas;
+    Context context;
 
     public DataBaseHelper(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        this.gradesMap = HTMLParser.parseHTMLTable(context, R.raw.grades_table);
-        this.areas = HTMLParser.parseHTMLTable(context, R.raw.areas);
+        this.areas = HTMLParser.parseHTMLTableToMap(context, R.raw.areas);
+        this.context = context;
     }
 
     @Override
@@ -74,17 +71,51 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_TABLE_SUMMITS);
         db.execSQL(SQL_CREATE_TABLE_ROUTES);
         db.execSQL(SQL_CREATE_TABLE_MyROUTES);
-        for(String area : areas.get("Gebiet")){
-            ContentValues newRow = new ContentValues();
-            newRow.put(AreaEntry.COLUMN_AREA_NAME,area);
-            db.insert(AreaEntry.TABLE_NAME, null, newRow);
-        }
 
+        //TODO: If task fails db is created anyway...Catch fails and make sure db is filled
+        FillDBTask fillDB = new FillDBTask(db,context);
+        fillDB.execute();
         Log.i("Databasehelper", "Created Database");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+    }
+    private class FillDBTask extends AsyncTask<Void, Void, String>{
+        SQLiteDatabase db;
+        Context context;
+        FillDBTask(SQLiteDatabase db, Context context){
+            this.db = db;
+            this.context = context;
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            this.db.beginTransaction();
+            try{
+                ContentValues newRow = new ContentValues();
+                // Fill areas table
+                for(String area : areas.get("Gebiet")){
+                    newRow.put(AreaEntry.COLUMN_AREA_NAME,area);
+                    this.db.insert(AreaEntry.TABLE_NAME, null, newRow);
+                }
+                //Fill summits tables
+                Map<String, List<String>> summitsMap = HTMLParser.parseHTMLTableToMap(context, R.raw.areas_1);
+                List<String> summits = summitsMap.get("Gipfel");
+                newRow = new ContentValues();
+                for(int i = 0; i<summits.size(); i++){
+                    newRow.put(SummitEntry.COLUMN_SUMMIT_NAME, summitsMap.get("Gipfel").get(i));
+                    newRow.put(SummitEntry.COLUMN_SUMMIT_AREA, summitsMap.get("Gebiet").get(i));
+                    //newRow.put(SummitEntry.COLUMN_SUMMIT_GEOTAG, null);
+                    this.db.insert(SummitEntry.TABLE_NAME, null, newRow);
+                }
+                db.setTransactionSuccessful();
+            } finally {
+                this.db.endTransaction();
+            }
+            return null;
+        }
 
     }
 }

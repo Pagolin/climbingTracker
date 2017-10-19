@@ -7,11 +7,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NavUtils;
+import android.widget.Adapter;
+import android.widget.CursorAdapter;
 import android.widget.FilterQueryProvider;
 import android.widget.SimpleCursorAdapter;
 import android.support.v7.app.AlertDialog;
@@ -25,17 +26,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
-import mietzekatze.climbingtracker.dataHandling.DataBaseHelper;
 import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 
 /**
@@ -46,9 +45,12 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
 
     private AutoCompleteTextView areaEditText;
     private AutoCompleteTextView summitEditText;
+    CursorAdapter summitSuggestionsAdapter;
     private EditText routeEditText;
     private Spinner stateSpinner;
     private Spinner gradeSpinner;
+    private String areaSelection;
+    private String summitSelection;
 
 
    //declare whether the entered route is just new, climbed as follower, leader or..well...with sack
@@ -80,29 +82,23 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entry_form);
-        scalesAndGrades  = HTMLParser.parseHTMLTable(this, R.raw.grades_table_new);
+        scalesAndGrades  = HTMLParser.parseHTMLTableToMap(this, R.raw.grades_table_new);
         currentScale = new ArrayList<>(scalesAndGrades.get(OverviewActivity.currentScalePreference));
 
-        // Find all relevant views that we will need to read user input from
+
         areaEditText = (AutoCompleteTextView) findViewById(R.id.edit_area_name);
-        setSuggestions(areaEditText, DataBaseContract.AreaEntry.AREAS_CONTENT_URI,
-                new String[]{DataBaseContract.AreaEntry.AREA_ID, DataBaseContract.AreaEntry.COLUMN_AREA_NAME},
-                null, null,null );
         areaEditText.setOnTouchListener(touchListener);
 
         summitEditText = (AutoCompleteTextView) findViewById(R.id.edit_summit_name);
         summitEditText.setOnTouchListener(touchListener);
-        String[] summits = new String[]{"Pfeffernuss","Gugelhupf", "Schokohase", "Eierschecke","Zupfkuchen","Rumkugel"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_dropdown_item_1line, summits);
-        summitEditText.setAdapter(adapter);
+
 
         routeEditText = (EditText) findViewById(R.id.edit_route_name);
         routeEditText.setOnTouchListener(touchListener);
+
         stateSpinner = (Spinner) findViewById(R.id.spinner_status);
         stateSpinner.setOnTouchListener(touchListener);
         setupStateSpinner();
-
 
         gradeSpinner = (Spinner) findViewById(R.id.spinner_grade);
         gradeSpinner.setOnTouchListener(touchListener);
@@ -123,6 +119,35 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
                 saveRoute();
             }
         });
+
+
+        CursorAdapter areaSuggestionsAdapter = queryForSuggestions(DataBaseContract.AreaEntry.AREAS_CONTENT_URI,
+                new String[]{DataBaseContract.AreaEntry.AREA_ID, DataBaseContract.AreaEntry.COLUMN_AREA_NAME},
+                null, null,null);
+        areaEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if(!hasFocus){
+                    String areaText = ((TextView) view).getText().toString();
+                    Log.i("Entered Area was: ", areaText);
+                    summitSuggestionsAdapter = queryForSuggestions(DataBaseContract.SummitEntry.SUMMITS_CONTENT_URI,
+                            new String[]{DataBaseContract.SummitEntry.SUMMIT_ID, DataBaseContract.SummitEntry.COLUMN_SUMMIT_NAME},
+                            DataBaseContract.SummitEntry.COLUMN_SUMMIT_AREA +" = ?", new String[]{areaText},null);
+                    summitEditText.setAdapter(summitSuggestionsAdapter);
+                }
+            }
+        });
+        areaEditText.setAdapter(areaSuggestionsAdapter);
+
+
+        /*summitEditText.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Cursor cur = (Cursor) adapterView.getItemAtPosition(position);
+                summitSelection = cur.getString(cur.getColumnIndex(DataBaseContract.SummitEntry.COLUMN_SUMMIT_NAME));
+                Log.i("Selected Area was: ", summitSelection);
+            }
+        });*/
     }
 
 
@@ -273,13 +298,13 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
 
             String route  = cursor.getString(indexOfRoute);
             String summit  = cursor.getString(indexOfSummit);
-            String area  = cursor.getString(indexOfArea);
+            areaSelection  = cursor.getString(indexOfArea);
             int difficulty = cursor.getInt(indexOfDifficulty);
             int status = cursor.getInt(indexOfState);
 
             routeEditText.setText(route);
             summitEditText.setText(summit);
-            areaEditText.setText(area);
+            areaEditText.setText(areaSelection);
             gradeSpinner.setSelection(difficulty);
             stateSpinner.setSelection(status);
         }
@@ -315,24 +340,29 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
     private void clearFields() {
         routeEditText.setText("");
         summitEditText.setText("");
+        areaSelection = null;
         areaEditText.setText("");
         stateSpinner.setSelection(DataBaseContract.MyRoutesEntry.NOT_DONE);
         gradeSpinner.setSelection(0);
     }
-
     //TODO: Add param validation and move to static public context in a Utils class
-    private void setSuggestions(AutoCompleteTextView editText, final Uri tableUri,
-                                final String[] columns_Id_and_Suggestions,
-                                String selection, String[] selectionArgs, String sortOrder) {
-        /**
-         * This function retreives data from specified sql table and column and adds them as autocomplete
-         * suggestions to the given AutoCompleteTextView
-         *@param columns_Id_and_Suggestions: String[] containing 1. the name of the _id column and
-         *                                 2. name of the suggestion column in the
-         *                                 given table to retrieve a cursor on the data
-         *  */
+
+
+    /**
+     * This function retreives data from specified sql table and column and adds them as autocomplete
+     * suggestions to the given AutoCompleteTextView
+     *@param columns_Id_and_Suggestions: String[] containing 1. the name of the _id column and
+     *                                 2. name of the suggestion column in the
+     *                                 given table to retrieve a cursor on the data
+     */
+    private CursorAdapter queryForSuggestions(final Uri tableUri,
+                                                 final String[] columns_Id_and_Suggestions,
+                                                 String selection, String[] selectionArgs, String sortOrder) {
+
         final String suggestionColumnName = columns_Id_and_Suggestions[1];
         final String[] suggestions = new String[]{suggestionColumnName};
+        final String preSelection = selection;
+        final String [] preSelectionArgs = selectionArgs;
 
         Cursor suggCursor = getContentResolver().query(tableUri,columns_Id_and_Suggestions,
                 selection,selectionArgs, sortOrder);
@@ -345,17 +375,24 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         suggestionsAdapter.setFilterQueryProvider(new FilterQueryProvider() {
             @Override
             public Cursor runQuery(CharSequence allreadyEnteredChars) {
-                String filterString = null, selection = null;
-                String [] selectionArgs = null;
-                if(allreadyEnteredChars!= null) {
+                String filterString = null;
+                String combinedSelection = preSelection;
+                String[] combinedSelectionArgs = preSelectionArgs;
+                if(allreadyEnteredChars != null) {
                     filterString = allreadyEnteredChars.toString()+"%";
-                    selection = suggestionColumnName + " LIKE ?";
-                    selectionArgs = new String[]{filterString};
+                    if(preSelection == null) {
+                        combinedSelection  = suggestionColumnName + " LIKE ?";
+                        combinedSelectionArgs = new String[]{filterString};
+                    } else {
+                        combinedSelection = preSelection + " AND " + suggestionColumnName + " LIKE ?";
+                        combinedSelectionArgs = new String[]{preSelectionArgs[0], filterString};
+                    }
                 }
-                return getContentResolver().query(tableUri,columns_Id_and_Suggestions, selection, selectionArgs, null);
+                return getContentResolver().query(tableUri,columns_Id_and_Suggestions,
+                        combinedSelection, combinedSelectionArgs, null);
             }
         });
-        editText.setAdapter(suggestionsAdapter);
+        return suggestionsAdapter;
     }
 
 }

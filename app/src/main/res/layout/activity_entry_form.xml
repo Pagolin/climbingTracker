@@ -32,25 +32,23 @@
                 android:paddingLeft="4dp"
                 android:orientation="vertical">
 
-                <!-- Name field -->
-                <EditText
-                    android:id="@+id/edit_route_name"
-                    android:hint="@string/hint_route_name"
+                <AutoCompleteTextView
+                    android:id="@+id/edit_area_name"
+                    android:hint="@string/hint_area_name"
                     android:inputType="textCapWords"
+                    android:completionThreshold="1"
                     style="@style/EditorFieldStyle" />
 
-                <!-- Breed field -->
                 <AutoCompleteTextView
                     android:id="@+id/edit_summit_name"
                     android:hint="@string/hint_summit_name"
                     android:inputType="textCapWords"
                     style="@style/EditorFieldStyle" />
 
-                <AutoCompleteTextView
-                    android:id="@+id/edit_area_name"
-                    android:hint="@string/hint_area_name"
+                <EditText
+                    android:id="@+id/edit_route_name"
+                    android:hint="@string/hint_route_name"
                     android:inputType="textCapWords"
-                    android:completionThreshold="1"
                     style="@style/EditorFieldStyle" />
             </LinearLayout>
         </LinearLayout>

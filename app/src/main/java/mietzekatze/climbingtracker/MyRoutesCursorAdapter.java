@@ -31,7 +31,7 @@ public class MyRoutesCursorAdapter extends CursorAdapter {
     public MyRoutesCursorAdapter(Context context,Cursor cursor){
         super(context,cursor, 0);
         this.context = context;
-        scalesAndGrades = HTMLParser.parseHTMLTable(this.context, R.raw.grades_table_new);
+        scalesAndGrades = HTMLParser.parseHTMLTableToMap(this.context, R.raw.grades_table_new);
         currentScale = new ArrayList<>(scalesAndGrades.get(OverviewActivity.currentScalePreference));
         Log.i("CursorAdapter", "Current Scale is: " + currentScale.toString());
     }

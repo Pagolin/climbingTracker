@@ -35,7 +35,6 @@ public class DataBaseContract {
         public static final Uri SUMMITS_CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_SUMMITS);
         public static final String TABLE_NAME = "summits";
         public static final String SUMMIT_ID = BaseColumns._ID;
-        public static final String COLUMN_SUMMIT_NUMBER = "summitNumber";
         public static final String COLUMN_SUMMIT_NAME = "summitName";
         public static final String COLUMN_SUMMIT_AREA = "summitArea";
         public static final String COLUMN_SUMMIT_GEOTAG ="summitGeotag";
