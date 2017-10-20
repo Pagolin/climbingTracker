@@ -366,10 +366,11 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
 
         Cursor suggCursor = getContentResolver().query(tableUri,columns_Id_and_Suggestions,
                 selection,selectionArgs, sortOrder);
+        //startManagingCursor(suggCursor);
 
         SimpleCursorAdapter suggestionsAdapter = new SimpleCursorAdapter(this,
                 android.R.layout.simple_dropdown_item_1line,suggCursor,
-                suggestions,new int[]{android.R.id.text1}, 0);
+                suggestions,new int[]{android.R.id.text1}, 1);
 
         suggestionsAdapter.setStringConversionColumn(suggCursor.getColumnIndex(suggestionColumnName));
         suggestionsAdapter.setFilterQueryProvider(new FilterQueryProvider() {
@@ -379,7 +380,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
                 String combinedSelection = preSelection;
                 String[] combinedSelectionArgs = preSelectionArgs;
                 if(allreadyEnteredChars != null) {
-                    filterString = allreadyEnteredChars.toString()+"%";
+                    filterString = "%"+allreadyEnteredChars.toString()+"%";
                     if(preSelection == null) {
                         combinedSelection  = suggestionColumnName + " LIKE ?";
                         combinedSelectionArgs = new String[]{filterString};

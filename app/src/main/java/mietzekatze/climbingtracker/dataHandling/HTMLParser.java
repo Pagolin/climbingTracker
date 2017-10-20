@@ -1,6 +1,7 @@
 package mietzekatze.climbingtracker.dataHandling;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -30,7 +31,6 @@ import java.util.Map;
 
 public class HTMLParser {
 
-
     public static String readRaw(Context context,int res_id) {
         InputStream rawStream = context.getResources().openRawResource(res_id);
         String htmlString = null;
@@ -41,6 +41,29 @@ public class HTMLParser {
         }
         Log.i("HTMLParser","parsed String:" + htmlString);
         return htmlString;
+    }
+
+    @NonNull
+    public static Map<String, List<String>> readCSVToMap(InputStream inputStream) throws IOException {
+        Map<String, List<String>> mapHeadersToValues = new HashMap<>();
+        if (inputStream != null) {
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
+            BufferedReader reader = new BufferedReader(inputStreamReader);
+            String line = reader.readLine();
+            String[] cells;
+            List<String> values;
+            while (line != null) {
+                cells = line.split(",");
+                values = new ArrayList<>();
+                for(int i = 1; i< cells.length; i++) {
+                    values.add(cells[i]);
+                }
+                mapHeadersToValues.put(cells[0],values);
+            }
+            return mapHeadersToValues;
+        } else {
+            return null;
+        }
     }
 
     @NonNull

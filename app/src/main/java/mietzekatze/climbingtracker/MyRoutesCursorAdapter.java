@@ -33,7 +33,6 @@ public class MyRoutesCursorAdapter extends CursorAdapter {
         this.context = context;
         scalesAndGrades = HTMLParser.parseHTMLTableToMap(this.context, R.raw.grades_table_new);
         currentScale = new ArrayList<>(scalesAndGrades.get(OverviewActivity.currentScalePreference));
-        Log.i("CursorAdapter", "Current Scale is: " + currentScale.toString());
     }
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parentView) {

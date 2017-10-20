@@ -2,6 +2,7 @@ package mietzekatze.climbingtracker.dataHandling;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
@@ -12,6 +13,8 @@ import android.util.Log;
  * Created by lisza on 06.10.17.
  */
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +25,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "SaxonianSwiss.db";
     public static final int DATABASE_VERSION = 1;
+    private AssetManager assetManager;
 
     /**
      * Strings that defines the SQL statements to be executed to create the ares, summits and
@@ -101,7 +105,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
                     this.db.insert(AreaEntry.TABLE_NAME, null, newRow);
                 }
                 //Fill summits tables
-                Map<String, List<String>> summitsMap = HTMLParser.parseHTMLTableToMap(context, R.raw.areas_1);
+                Map<String, List<String>> summitsMap = HTMLParser.parseHTMLTableToMap(context, R.raw.summits_all);
                 List<String> summits = summitsMap.get("Gipfel");
                 newRow = new ContentValues();
                 for(int i = 0; i<summits.size(); i++){

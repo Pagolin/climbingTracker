@@ -19,6 +19,8 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -81,8 +83,7 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
             }
         });
 
-         Map<String,List<String>> testMap  = HTMLParser.parseHTMLTableToMap(this, R.raw.areas);
-        Log.i("OverivewActivity", "parsed Map:" + testMap.toString());
+
     }
 
     @Override
