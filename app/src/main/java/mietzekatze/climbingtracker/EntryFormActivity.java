@@ -37,6 +37,8 @@ import java.util.Map;
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
 import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 
+import static mietzekatze.climbingtracker.dataHandling.DataBaseContract.scalesAndGrades;
+
 /**
  * Created by lisza on 08.10.17.
  */
@@ -51,6 +53,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
     private Spinner gradeSpinner;
     private String areaSelection;
     private String summitSelection;
+    private String[] currentScale;
 
 
    //declare whether the entered route is just new, climbed as follower, leader or..well...with sack
@@ -59,7 +62,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
     private Uri routeUri = null;
     private static int EDIT_LOADER_ID = 1;
     private boolean hasChanged = false;
-    private Map<String, List<String>> scalesAndGrades;
+
     public static String[] MyROUTES_PROJECTION = {  DataBaseContract.MyRoutesEntry._ID,
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_NAME,
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_SUMMIT,
@@ -67,7 +70,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_STATUS,
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY};
 
-    private List<String> currentScale;
+
     private View.OnTouchListener touchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -82,8 +85,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entry_form);
-        scalesAndGrades  = HTMLParser.parseHTMLTableToMap(this, R.raw.grades_table_new);
-        currentScale = new ArrayList<>(scalesAndGrades.get(OverviewActivity.currentScalePreference));
+        currentScale = scalesAndGrades.get(OverviewActivity.currentScalePreference);
 
 
         areaEditText = (AutoCompleteTextView) findViewById(R.id.edit_area_name);

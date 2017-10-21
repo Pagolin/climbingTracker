@@ -18,6 +18,8 @@ import java.util.Map;
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
 import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 
+import static mietzekatze.climbingtracker.dataHandling.DataBaseContract.scalesAndGrades;
+
 /**
  * Created by lisza on 08.10.17.
  */
@@ -25,14 +27,12 @@ import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 public class MyRoutesCursorAdapter extends CursorAdapter {
 
     private Context context;
-    private  Map<String, List<String>> scalesAndGrades;
-    private List<String> currentScale;
+    private String[] currentScale;
 
     public MyRoutesCursorAdapter(Context context,Cursor cursor){
         super(context,cursor, 0);
         this.context = context;
-        scalesAndGrades = HTMLParser.parseHTMLTableToMap(this.context, R.raw.grades_table_new);
-        currentScale = new ArrayList<>(scalesAndGrades.get(OverviewActivity.currentScalePreference));
+        currentScale = scalesAndGrades.get(OverviewActivity.currentScalePreference);
     }
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parentView) {
@@ -59,7 +59,7 @@ public class MyRoutesCursorAdapter extends CursorAdapter {
 
         routeAndSummitField.setText(summit + ", "+ route);
         areaNameField.setText(area);
-        difficField.setText(currentScale.get(difficulty));
+        difficField.setText(currentScale[difficulty]);
         coloredCircle.setColor(selectColor(difficulty));
     }
 
@@ -103,7 +103,7 @@ public class MyRoutesCursorAdapter extends CursorAdapter {
     }
 
     private int norm(int difficulty) {
-        float countGrades = currentScale.size();
+        float countGrades = currentScale.length;
         float relativeGrade = (difficulty/countGrades) *10;
         return Math.round(relativeGrade);
     }

@@ -41,9 +41,9 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
     MyRoutesCursorAdapter myRoutesCursorAdapter;
 
     //TODO: Use sharedPreferences for scale Preference
+    //TODO: Replace ListView by RecyclerView
 
     private static int CURSOR_LOADER_ID = 0;
-    private static final String SCALE_PREFERENCE_KEY = "Grade Preference";
     public static String currentScalePreference = DataBaseContract.SCALE_SAX;
     public SharedPreferences sharedPref;
     private ListView routesList;
