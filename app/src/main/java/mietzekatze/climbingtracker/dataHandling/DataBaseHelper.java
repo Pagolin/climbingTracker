@@ -49,16 +49,18 @@ public class DataBaseHelper extends SQLiteOpenHelper {
             + RoutesEntry.COLUMN_ROUTES_NAME + " TEXT NOT NULL,"
             + RoutesEntry.COLUMN_ROUTES_SUMMIT_ID + " INTEGER, "
             + RoutesEntry.COLUMN_ROUTES_DIFFICULTY + " INTEGER, "
+            + RoutesEntry.COLUMN_ROUTES_SECURING + " INTEGER, "
             + " FOREIGN KEY(" + RoutesEntry.COLUMN_ROUTES_SUMMIT_ID
             + ") REFERENCES "+ SummitEntry.TABLE_NAME +"( "+ SummitEntry.SUMMIT_ID+")" +");";
 
     static final String SQL_CREATE_TABLE_MyROUTES = "CREATE TABLE IF NOT EXISTS " + MyRoutesEntry.TABLE_NAME + "("
             + MyRoutesEntry.MyROUTE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
             + MyRoutesEntry.COLUMN_ROUTE_NAME + " TEXT NOT NULL,"
-            + MyRoutesEntry.COLUMN_ROUTE_STATUS + " INTEGER DEFAULT " + MyRoutesEntry.NOT_DONE +","
-            + MyRoutesEntry.COLUMN_ROUTE_SUMMIT + " TEXT,"
-            + MyRoutesEntry.COLUMN_ROUTE_AREA + " TEXT,"
-            + MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY+ " INTEGER" +");";
+            + MyRoutesEntry.COLUMN_ROUTE_STATUS + " INTEGER DEFAULT " + MyRoutesEntry.NOT_DONE +", "
+            + MyRoutesEntry.COLUMN_ROUTE_SUMMIT + " TEXT, "
+            + MyRoutesEntry.COLUMN_ROUTE_AREA + " TEXT, "
+            + MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY+ " INTEGER, "
+            + MyRoutesEntry.COLUMN_ROUTE_DATE + " INTEGER "+");";
 
     Map<String, List<String>> areas;
     Context context;

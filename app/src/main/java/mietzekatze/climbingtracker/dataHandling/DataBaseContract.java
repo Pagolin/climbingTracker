@@ -96,6 +96,10 @@ public class DataBaseContract {
         public static final String COLUMN_ROUTES_NAME = "routeName";
         public static final String COLUMN_ROUTES_SUMMIT_ID = "routeSummit";
         public static final String COLUMN_ROUTES_DIFFICULTY = "difficulty";
+        //Securing as int from 1 t
+        public static final String COLUMN_ROUTES_SECURING = "securing";
+        public static final String COLUMN_ROUTE_RATING = "rating";
+        public static final String COLUMN_ROUTE_DIRECTION = "direction";
 
     }
 
@@ -108,12 +112,12 @@ public class DataBaseContract {
         public static final String COLUMN_ROUTE_AREA = "areaName";
         public static final String COLUMN_ROUTE_DIFFICULTY = "difficulty";
         public static final String COLUMN_ROUTE_STATUS ="routeStatus";
+        public static final String COLUMN_ROUTE_DATE = "dateClimbed";
 
         //define status constants
         public static final int NOT_DONE = 0;
         public static final int DONE_AS_FOLLOWER = 1;
         public static final int DONE_AS_LEADER = 2;
         public static final int SACK = 3;
-
     }
 }

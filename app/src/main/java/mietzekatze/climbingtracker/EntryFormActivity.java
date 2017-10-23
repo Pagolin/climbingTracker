@@ -1,5 +1,6 @@
 package mietzekatze.climbingtracker;
 
+import android.app.DatePickerDialog;
 import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.CursorLoader;
@@ -7,12 +8,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.NavUtils;
-import android.widget.Adapter;
 import android.widget.CursorAdapter;
+import android.widget.DatePicker;
 import android.widget.FilterQueryProvider;
 import android.widget.SimpleCursorAdapter;
 import android.support.v7.app.AlertDialog;
@@ -35,8 +38,8 @@ import java.util.List;
 import java.util.Map;
 
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
+import mietzekatze.climbingtracker.dataHandling.DatePickerFragment;
 import mietzekatze.climbingtracker.dataHandling.HTMLParser;
-
 import static mietzekatze.climbingtracker.dataHandling.DataBaseContract.scalesAndGrades;
 
 /**
@@ -47,13 +50,15 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
 
     private AutoCompleteTextView areaEditText;
     private AutoCompleteTextView summitEditText;
-    CursorAdapter summitSuggestionsAdapter;
+    private CursorAdapter summitSuggestionsAdapter;
     private EditText routeEditText;
     private Spinner stateSpinner;
     private Spinner gradeSpinner;
+    private FloatingActionButton saveButton;
     private String areaSelection;
     private String summitSelection;
     private String[] currentScale;
+    private EditText datePickerText;
 
 
    //declare whether the entered route is just new, climbed as follower, leader or..well...with sack
@@ -87,7 +92,6 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         setContentView(R.layout.activity_entry_form);
         currentScale = scalesAndGrades.get(OverviewActivity.currentScalePreference);
 
-
         areaEditText = (AutoCompleteTextView) findViewById(R.id.edit_area_name);
         areaEditText.setOnTouchListener(touchListener);
 
@@ -106,16 +110,24 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         gradeSpinner.setOnTouchListener(touchListener);
         setupGradeSpinner();
 
+        datePickerText = (EditText) findViewById(R.id.date_slot);
+        datePickerText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDatePickerDialog(view);
+            }
+        });
+
         /*Figure out the starting intent and adapt view an behaviour*/
         Intent addOrEdit = getIntent();
         routeUri = addOrEdit.getData();
         if(routeUri != null){
             Log.i("Edit Mode routeUri: ", routeUri.toString());
-            setTitle("Edit Route");
+            setTitle(R.string.entry_form_edit);
             getLoaderManager().initLoader(EDIT_LOADER_ID, null, this);
         }
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.save_fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        saveButton = (FloatingActionButton) findViewById(R.id.save_fab);
+        saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 saveRoute();
@@ -132,9 +144,12 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
                 if(!hasFocus){
                     String areaText = ((TextView) view).getText().toString();
                     Log.i("Entered Area was: ", areaText);
-                    summitSuggestionsAdapter = queryForSuggestions(DataBaseContract.SummitEntry.SUMMITS_CONTENT_URI,
-                            new String[]{DataBaseContract.SummitEntry.SUMMIT_ID, DataBaseContract.SummitEntry.COLUMN_SUMMIT_NAME},
-                            DataBaseContract.SummitEntry.COLUMN_SUMMIT_AREA +" = ?", new String[]{areaText},null);
+                    summitSuggestionsAdapter =
+                            queryForSuggestions(DataBaseContract.SummitEntry.SUMMITS_CONTENT_URI,
+                            new String[]{DataBaseContract.SummitEntry.SUMMIT_ID,
+                            DataBaseContract.SummitEntry.COLUMN_SUMMIT_NAME},
+                            DataBaseContract.SummitEntry.COLUMN_SUMMIT_AREA +" = ?",
+                            new String[]{areaText},null);
                     summitEditText.setAdapter(summitSuggestionsAdapter);
                 }
             }
@@ -202,10 +217,12 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         }
     }
 
+
+
+
+
     private void showUnsavedChangesDialog(
-            DialogInterface.OnClickListener discardButtonClickListener) {
-        // Create an AlertDialog.Builder and set the message, and click listeners
-        // for the positive and negative buttons on the dialog.
+        DialogInterface.OnClickListener discardButtonClickListener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(R.string.unsaved_changes_dialog_msg);
         builder.setPositiveButton(R.string.discard, discardButtonClickListener);
@@ -218,25 +235,15 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
                 }
             }
         });
-
-        // Create and show the AlertDialog
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
 
     private void setupStateSpinner() {
-        // Create adapter for spinner. The list options are from the String array it will use
-        // the spinner will use the default layout
         ArrayAdapter stateSpinnerAdapter = ArrayAdapter.createFromResource(this,
                 R.array.array_state_options, android.R.layout.simple_spinner_item);
-
-        // Specify dropdown layout style - simple list view with 1 item per line
         stateSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
-
-        // Apply the adapter to the spinner
         stateSpinner.setAdapter(stateSpinnerAdapter);
-
-        // Set the integer mSelected to the constant values
         stateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -332,7 +339,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         } else {
             changedRow = getContentResolver().update(routeUri, newRouteData, null, null);
         }
-        /*Afters uccessfull changing or updating*/
+        /*Afters successfull changing or updating*/
         if(newRouteUri!= null || changedRow != -1) {
             clearFields();
             hasChanged = false;
@@ -368,7 +375,6 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
 
         Cursor suggCursor = getContentResolver().query(tableUri,columns_Id_and_Suggestions,
                 selection,selectionArgs, sortOrder);
-        //startManagingCursor(suggCursor);
 
         SimpleCursorAdapter suggestionsAdapter = new SimpleCursorAdapter(this,
                 android.R.layout.simple_dropdown_item_1line,suggCursor,
@@ -396,6 +402,11 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
             }
         });
         return suggestionsAdapter;
+    }
+
+    public void showDatePickerDialog(View v) {
+        DialogFragment newFragment = new DatePickerFragment();
+        newFragment.show(getSupportFragmentManager(), "datePicker");
     }
 
 }

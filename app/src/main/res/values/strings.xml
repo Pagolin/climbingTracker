@@ -2,14 +2,15 @@
     <string name="app_name">climbingTracker</string>
     <string name="action_settings">Settings</string>
     <string name="placeholder_mountains">Placeholder Mountains</string>
-    <string name="category_overview">Overview</string>
+    <string name="category_location">Overview</string>
     <string name="hint_route_name">Route Name</string>
     <string name="hint_summit_name">Summit Name</string>
     <string name="hint_area_name">Area Name</string>
     <string name="category_status">Status</string>
     <string name="category_difficulty">Difficulty</string>
     <string name="hint_route_difficulty">Difficulty</string>
-    <string name="edntry_form_new_route">Add Route</string>
+    <string name="entry_form_new_route">Add Route</string>
+    <string name="entry_form_edit">Edit Route</string>
     <string name="empty_view_title_text">Seem\'s like you haven\'t climbed before</string>
     <string name="empty_view_subtitle_text">Let\'s climb a rock</string>
     <string name="state_sack">Sack aufgehängt</string>
@@ -27,5 +28,15 @@
     <string name="preference_file_key">Scale_preference</string>
     <string name="set_scale_sierra">Sierra Scala</string>
     <string name="set_scale_uiaa">UIAA Scala</string>
+    <!--Categories of route securing-->
+    <string name="very_good">very good</string>
+    <string name="good">good</string>
+    <string name="sufficient">sufficient</string>
+    <string name="saxonian">traditional</string>
+    <string name="bad">poor</string>
+    <string name="dangerous">dangerous</string>
+
+    <string name="date">Date</string>
+    <string name="select_date">Select Date</string>
 
 </resources>

@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">Klettertagebuch</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="placeholder_mountains">Placeholder Mountains</string>
+    <string name="category_location">Örtlichkeit</string>
+    <string name="hint_route_name">Weg</string>
+    <string name="hint_summit_name">Gipfel</string>
+    <string name="hint_area_name">Gebiet</string>
+    <string name="category_status">Status</string>
+    <string name="category_difficulty">Schwierigkeit</string>
+    <string name="hint_route_difficulty">Schwierigkeit</string>
+    <string name="entry_form_new_route">Neu geklettert</string>
+    <string name="entry_form_edit">Eintrag bearbeiten</string>
+    <string name="empty_view_title_text">Nix los hier</string>
+    <string name="empty_view_subtitle_text">Wolltest du nich klettern gehen?!</string>
+    <string name="state_sack">Sack aufgehängt</string>
+    <string name="state_as_leader">Vorsteiger</string>
+    <string name="state_as_follower">Nachsteiger</string>
+    <string name="state_nothing">Nüscht</string>
+    <string name="saving_success">Läuft! </string>
+    <string name="action_delete_item">Route löschen</string>
+    <string name="unsaved_changes_dialog_msg">Bleiben und speichern?</string>
+    <string name="discard">Nö</string>
+    <string name="keep_editing">Ja</string>
+    <string name="set_scale_saxonian">Sächsische Skala</string>
+    <string name="set_scale_french">Französische Skala</string>
+    <string name="category_grade">Schwierigkeit</string>
+    <string name="preference_file_key">Scale_preference</string>
+    <string name="set_scale_sierra">Sierra Scala</string>
+    <string name="set_scale_uiaa">UIAA Scala</string>
+
+
+    <!--Categories of route securing-->
+    <string name="very_good">sehr gut</string>
+    <string name="good">gut</string>
+    <string name="sufficient">ausreichend</string>
+    <string name="saxonian">klassisch</string>
+    <string name="bad">schlecht</string>
+    <string name="dangerous">gefährlich</string>
+    <string name="date">Datum</string>
+
+    <string name="select_date">Datum wählen</string>
+
+
+</resources>

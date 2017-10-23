@@ -22,7 +22,7 @@
 
         <activity
             android:name=".EntryFormActivity"
-            android:label="@string/edntry_form_new_route"
+            android:label="@string/entry_form_new_route"
             android:theme="@style/EditorTheme"
             android:parentActivityName=".OverviewActivity" >
             <!-- Parent activity meta-data to support 4.0 and lower -->
