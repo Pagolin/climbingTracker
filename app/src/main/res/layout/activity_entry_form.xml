@@ -42,6 +42,7 @@
                 <AutoCompleteTextView
                     android:id="@+id/edit_summit_name"
                     android:hint="@string/hint_summit_name"
+                    android:completionThreshold="1"
                     android:inputType="textCapWords"
                     style="@style/EditorFieldStyle" />
 
@@ -120,11 +121,12 @@
                 style="@style/CategoryStyle" />
 
             <LinearLayout
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_width="0dp"
                 android:layout_weight="2"
+                android:paddingLeft="4dp"
                 android:orientation="horizontal"
-                android:layout_gravity="bottom">
+                android:gravity="bottom">
 
                 <TextView
                     android:id="@+id/date_slot"

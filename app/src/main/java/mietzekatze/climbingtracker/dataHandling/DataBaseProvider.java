@@ -7,12 +7,14 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +57,10 @@ public class DataBaseProvider extends ContentProvider {
         dbHelper = new DataBaseHelper(this.getContext());
         return true;
     }
+
+    /***********************************************************************************************
+     * Handle Queries
+     **********************************************************************************************/
 
     @Nullable
     @Override
@@ -116,16 +122,21 @@ public class DataBaseProvider extends ContentProvider {
         return null;
     }
 
+
+    /***********************************************************************************************
+     * Handle Inserts
+     **********************************************************************************************/
+
     @Nullable
     @Override
-    public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) {
+    public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues){
         switch (sUriMatcher.match(uri)) {
             case ALLAreas:
-                return insertArea(uri, contentValues);
+                return null;//return insertArea(uri, contentValues);
             case ALLSummits:
-                return insertSummit(uri, contentValues);
+                return null;// return insertSummit(uri, contentValues);
             case ALLRoutes:
-                return insertRoute(uri, contentValues);
+                return null;//return insertRoute(uri, contentValues);
             case ALLMyRoutes:
                 return insertMyRoute(uri, contentValues);
 
@@ -134,6 +145,7 @@ public class DataBaseProvider extends ContentProvider {
         }
     }
 
+    @Nullable
     private Uri insertMyRoute(Uri uri, ContentValues contentValues) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
@@ -141,15 +153,10 @@ public class DataBaseProvider extends ContentProvider {
             sanityCheck(contentValues);
             long newRowId = db.insert(uri.getLastPathSegment(),null,contentValues);
             if (newRowId == -1) {
-                // If the row ID is -1, then there was an error with insertion.
                 Toast.makeText(this.getContext(), "Error with saving route", Toast.LENGTH_SHORT).show();
                 return null;
             } else {
-                // Otherwise, the insertion was successful and we can display a toast with the row ID.
                 Toast.makeText(this.getContext(), R.string.saving_success, Toast.LENGTH_SHORT).show();
-
-                //Notify the cursors listening to the uri. Calling notify(uri, *null*) will
-                // by default notify the cursor adapter
                 getContext().getContentResolver().notifyChange(uri, null);
                 return ContentUris.withAppendedId(uri, newRowId);
             }
@@ -161,9 +168,7 @@ public class DataBaseProvider extends ContentProvider {
         }
     }
 
-
-    private Uri insertRoute(Uri uri, ContentValues contentValues) {
-        //TODO: Check content values, if not in Database-> insert Summit, insert Route
+    public Uri insertRoutes(Uri uri) {
         return null;
     }
 
@@ -177,6 +182,9 @@ public class DataBaseProvider extends ContentProvider {
         return null;
     }
 
+    /***********************************************************************************************
+     * Handle Delets
+     **********************************************************************************************/
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
         SQLiteDatabase database = dbHelper.getWritableDatabase();
@@ -198,6 +206,10 @@ public class DataBaseProvider extends ContentProvider {
         return rowsDeleted;
     }
 
+
+    /***********************************************************************************************
+     * Handle Updates
+     **********************************************************************************************/
     /**So far changes shall only be allowed on the MyRoutes table*/
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues,
@@ -217,7 +229,7 @@ public class DataBaseProvider extends ContentProvider {
 
     private int updateMyRoute(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-
+        //TODO: Extend functionality to use foreign keys for summit and if necessary insert summit
         try {
             sanityCheck(contentValues);
             int nrOfUpdatedRows = db.update(DataBaseContract.MyRoutesEntry.TABLE_NAME, contentValues, selection, selectionArgs);

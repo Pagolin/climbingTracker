@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -21,11 +22,13 @@ import android.widget.ListView;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract.*;
+import mietzekatze.climbingtracker.dataHandling.DataBaseHelper;
 import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 
 public class OverviewActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
@@ -84,6 +87,41 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
             }
         });
 
+        Map<String, List<String>> featureMap = HTMLParser.parseHTMLTableToMap(this, R.raw.mock_routes);
+        SQLiteDatabase db = new DataBaseHelper(this).getWritableDatabase();
+        /*
+        List<String> summitNames = featureMap.get("Gipfel");
+        for(String name : summitNames) {
+
+        }
+        String selection = summitNames.toString().replace("[","(").replace("]",")");
+        String testselection = "(\"Affenhorn\", \"Dürrebielenadel\")";
+
+        Cursor sIDCursor = db.rawQuery("SELECT " + DataBaseContract.SummitEntry.SUMMIT_ID +", "+ SummitEntry.COLUMN_SUMMIT_NAME
+                + " FROM "  + DataBaseContract.SummitEntry.TABLE_NAME + " WHERE " + SummitEntry.COLUMN_SUMMIT_NAME+
+                " IN " + testselection, null);
+
+        ArrayList<Integer> summitIDs = new ArrayList<>();
+        int idColumn = sIDCursor.getColumnIndex(DataBaseContract.SummitEntry.SUMMIT_ID);
+        if(sIDCursor.moveToFirst()){
+            while(sIDCursor.moveToNext()) {
+                summitIDs.add(sIDCursor.getPosition()); //add the item
+                Log.i("LOOPING CURSSOR: ", "ID is " +sIDCursor.getPosition() );
+            }
+        }
+        Log.i("SUMMITS", "Names: " + summitNames + " IDs found: " + sIDCursor.getCount());
+        */
+        int routes = featureMap.get("Name").size();
+        for(int i = 0; i< routes; i++) {
+        db.execSQL("INSERT INTO "+RoutesEntry.TABLE_NAME+
+                        " ("+ RoutesEntry.COLUMN_ROUTES_NAME+","+ RoutesEntry.COLUMN_ROUTES_SUMMIT_ID+
+                        ","+ RoutesEntry.COLUMN_ROUTES_SECURING+ ","+ RoutesEntry.COLUMN_ROUTES_DIFFICULTY+") "+
+                        "VALUES( \""+ featureMap.get("Name").get(i)+ "\","+ "(SELECT "+ SummitEntry.SUMMIT_ID+
+                                                                       " FROM "+SummitEntry.TABLE_NAME+
+                                                                       " WHERE "+SummitEntry.COLUMN_SUMMIT_NAME+"= \"" +
+                                                                         featureMap.get("Gipfel").get(i)+"\")"
+                                + ", \""+featureMap.get("Sicherung").get(i)+ "\",\""+ featureMap.get("Grad").get(i) + "\")");
+        }
 
     }
 
