@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
 import android.support.v4.content.ContextCompat;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,19 +47,24 @@ public class MyRoutesCursorAdapter extends CursorAdapter {
         TextView areaNameField = view.findViewById(R.id.area_name_slot);
         TextView difficField = view.findViewById(R.id.difficulty_slot);
         GradientDrawable coloredCircle = (GradientDrawable) difficField.getBackground();
+        TextView dateSlot = view.findViewById(R.id.date_slot);
         
 
         int indexOfRoute = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_NAME);
-        String route  = cursor.getString(indexOfRoute);
         int indexOfSummit = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_SUMMIT);
-        String summit  = cursor.getString(indexOfSummit);
         int indexOfArea = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_AREA);
-        String area  = cursor.getString(indexOfArea);
         int indexOfDifficulty = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY);
+        int indexOfTimestemp = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DATE);
+
         int difficulty = cursor.getInt(indexOfDifficulty);
+        long timestemp = cursor.getLong(indexOfTimestemp);
+        String route  = cursor.getString(indexOfRoute);
+        String summit  = cursor.getString(indexOfSummit);
+        String area  = cursor.getString(indexOfArea);
 
         routeAndSummitField.setText(summit + ", "+ route);
         areaNameField.setText(area);
+        dateSlot.setText(DateFormat.format("dd MMM, yyyy", timestemp));
         difficField.setText(currentScale[difficulty]);
         coloredCircle.setColor(selectColor(difficulty));
     }

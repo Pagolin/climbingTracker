@@ -1,6 +1,5 @@
 package mietzekatze.climbingtracker;
 
-import android.app.DatePickerDialog;
 import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.CursorLoader;
@@ -8,14 +7,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.NavUtils;
+import android.text.format.DateFormat;
 import android.widget.CursorAdapter;
-import android.widget.DatePicker;
 import android.widget.FilterQueryProvider;
 import android.widget.SimpleCursorAdapter;
 import android.support.v7.app.AlertDialog;
@@ -33,24 +34,23 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.Date;
 
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
 import mietzekatze.climbingtracker.dataHandling.DatePickerFragment;
-import mietzekatze.climbingtracker.dataHandling.HTMLParser;
 import static mietzekatze.climbingtracker.dataHandling.DataBaseContract.scalesAndGrades;
 
 /**
  * Created by lisza on 08.10.17.
  */
 
-public class EntryFormActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class EntryFormActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
+        DatePickerFragment.DatePickerFragmentListener{
 
     private AutoCompleteTextView areaEditText;
     private AutoCompleteTextView summitEditText;
     private CursorAdapter summitSuggestionsAdapter;
+    private TextView datePickerText;
     private EditText routeEditText;
     private Spinner stateSpinner;
     private Spinner gradeSpinner;
@@ -58,13 +58,15 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
     private String areaSelection;
     private String summitSelection;
     private String[] currentScale;
-    private EditText datePickerText;
+
+    private DatePickerFragment datePickerFragment;
 
 
    //declare whether the entered route is just new, climbed as follower, leader or..well...with sack
     private int routeState = 0;
     private int routeGrade = 0;
     private Uri routeUri = null;
+    private long timestemp = 0;
     private static int EDIT_LOADER_ID = 1;
     private boolean hasChanged = false;
 
@@ -73,7 +75,8 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_SUMMIT,
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_AREA,
             DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_STATUS,
-            DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY};
+            DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY,
+            DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DATE};
 
 
     private View.OnTouchListener touchListener = new View.OnTouchListener() {
@@ -110,11 +113,13 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         gradeSpinner.setOnTouchListener(touchListener);
         setupGradeSpinner();
 
-        datePickerText = (EditText) findViewById(R.id.date_slot);
+        datePickerFragment = DatePickerFragment.newInstance(this);
+        datePickerText = (TextView) findViewById(R.id.date_slot);
         datePickerText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showDatePickerDialog(view);
+                hasChanged = true;
             }
         });
 
@@ -138,6 +143,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         CursorAdapter areaSuggestionsAdapter = queryForSuggestions(DataBaseContract.AreaEntry.AREAS_CONTENT_URI,
                 new String[]{DataBaseContract.AreaEntry.AREA_ID, DataBaseContract.AreaEntry.COLUMN_AREA_NAME},
                 null, null,null);
+
         areaEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean hasFocus) {
@@ -228,8 +234,6 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         builder.setPositiveButton(R.string.discard, discardButtonClickListener);
         builder.setNegativeButton(R.string.keep_editing, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                // User clicked the "Keep editing" button, so dismiss the dialog
-                // and continue editing the pet.
                 if (dialog != null) {
                     dialog.dismiss();
                 }
@@ -289,6 +293,9 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         });
     }
 
+    /***********************************************************************************************
+     * LoaderCallbacks
+     ************************************************************************************************/
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         return new CursorLoader(this, routeUri,
@@ -304,18 +311,27 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
             int indexOfArea = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_AREA);
             int indexOfDifficulty = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY);
             int indexOfState = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_STATUS);
+            int indexOfDate = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DATE);
 
             String route  = cursor.getString(indexOfRoute);
             String summit  = cursor.getString(indexOfSummit);
             areaSelection  = cursor.getString(indexOfArea);
             int difficulty = cursor.getInt(indexOfDifficulty);
             int status = cursor.getInt(indexOfState);
+            long givenTimestemp =cursor.getLong(indexOfDate);
+            timestemp = givenTimestemp;
 
             routeEditText.setText(route);
             summitEditText.setText(summit);
             areaEditText.setText(areaSelection);
             gradeSpinner.setSelection(difficulty);
             stateSpinner.setSelection(status);
+            if(timestemp == 0) {
+                datePickerText.setText("unbekannt");
+            } else {
+                datePickerText.setText(DateFormat.format("dd MMM yyyy", timestemp));
+            }
+
         }
     }
 
@@ -333,7 +349,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_AREA, areaEditText.getText().toString().trim());
         newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_STATUS, routeState);
         newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY, routeGrade);
-        Log.i("saveRoute", " new routeState is " + routeState);
+        newRouteData.put(DataBaseContract.MyRoutesEntry.COLUMN_ROUTE_DATE, timestemp);
         if(routeUri == null) {
             newRouteUri = getContentResolver().insert(DataBaseContract.MyRoutesEntry.MyROUTES_CONTENT_URI, newRouteData);
         } else {
@@ -405,8 +421,14 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
     }
 
     public void showDatePickerDialog(View v) {
-        DialogFragment newFragment = new DatePickerFragment();
-        newFragment.show(getSupportFragmentManager(), "datePicker");
+        datePickerFragment.show(getSupportFragmentManager(), "datePicker");
     }
 
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @Override
+    public void onDateSet(Calendar calendarEntry) {
+        timestemp = calendarEntry.getTimeInMillis();
+        datePickerText.setText(new SimpleDateFormat("dd MMM yyyy").format(timestemp));
+    }
 }

@@ -35,7 +35,8 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
             MyRoutesEntry.COLUMN_ROUTE_SUMMIT,
             MyRoutesEntry.COLUMN_ROUTE_AREA,
             MyRoutesEntry.COLUMN_ROUTE_STATUS,
-            MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY};
+            MyRoutesEntry.COLUMN_ROUTE_DIFFICULTY,
+            MyRoutesEntry.COLUMN_ROUTE_DATE};
 
     Cursor myRoutesCursor;
     MyRoutesCursorAdapter myRoutesCursorAdapter;
