@@ -46,7 +46,7 @@
                     android:inputType="textCapWords"
                     style="@style/EditorFieldStyle" />
 
-                <EditText
+                <AutoCompleteTextView
                     android:id="@+id/edit_route_name"
                     android:hint="@string/hint_route_name"
                     android:inputType="textCapWords"

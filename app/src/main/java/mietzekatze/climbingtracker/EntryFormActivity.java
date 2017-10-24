@@ -49,9 +49,12 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
 
     private AutoCompleteTextView areaEditText;
     private AutoCompleteTextView summitEditText;
+    private AutoCompleteTextView routeEditText;
     private CursorAdapter summitSuggestionsAdapter;
+    private CursorAdapter areaSuggestionsAdapter;
+    private CursorAdapter routeSuggestionsAdapter;
     private TextView datePickerText;
-    private EditText routeEditText;
+
     private Spinner stateSpinner;
     private Spinner gradeSpinner;
     private FloatingActionButton saveButton;
@@ -102,7 +105,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         summitEditText.setOnTouchListener(touchListener);
 
 
-        routeEditText = (EditText) findViewById(R.id.edit_route_name);
+        routeEditText = (AutoCompleteTextView) findViewById(R.id.edit_route_name);
         routeEditText.setOnTouchListener(touchListener);
 
         stateSpinner = (Spinner) findViewById(R.id.spinner_status);
@@ -140,10 +143,12 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         });
 
 
-        CursorAdapter areaSuggestionsAdapter = queryForSuggestions(DataBaseContract.AreaEntry.AREAS_CONTENT_URI,
+        areaSuggestionsAdapter= queryForSuggestions(DataBaseContract.AreaEntry.AREAS_CONTENT_URI,
                 new String[]{DataBaseContract.AreaEntry.AREA_ID, DataBaseContract.AreaEntry.COLUMN_AREA_NAME},
                 null, null,null);
 
+        //When the areaEditText losses focus, the database is queried for the area and if found,
+        //corresponding summits are added as suggestions for the summitEditText
         areaEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean hasFocus) {
@@ -163,14 +168,30 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         areaEditText.setAdapter(areaSuggestionsAdapter);
 
 
-        /*summitEditText.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        summitEditText.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Cursor cur = (Cursor) adapterView.getItemAtPosition(position);
                 summitSelection = cur.getString(cur.getColumnIndex(DataBaseContract.SummitEntry.COLUMN_SUMMIT_NAME));
-                Log.i("Selected Area was: ", summitSelection);
+                Log.i("Selected Summit was: ", summitSelection + "ID/Position: " + id +" "+ position);
+                routeSuggestionsAdapter = queryForSuggestions(DataBaseContract.RoutesEntry.ROUTES_CONTENT_URI,
+                                            new String[]{DataBaseContract.RoutesEntry.ROUTE_ID,
+                                            DataBaseContract.RoutesEntry.COLUMN_ROUTES_NAME},
+                                            DataBaseContract.RoutesEntry.COLUMN_ROUTES_SUMMIT_ID + " = ?",
+                                            new String[]{String.valueOf(id)}, null);
+                Log.i("Routadapter: ", "Count: " + routeSuggestionsAdapter.getCount());
+                routeEditText.setAdapter(routeSuggestionsAdapter);
             }
-        });*/
+        });
+
+        routeEditText.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Cursor cur = (Cursor) adapterView.getItemAtPosition(position);
+                String routeSelection = cur.getString(cur.getColumnIndex(DataBaseContract.RoutesEntry.COLUMN_ROUTES_NAME));
+                Log.i("Selected Summit was: ", routeSelection + "ID/Position: " + id +" "+ position);
+            }
+        });
     }
 
 
@@ -370,7 +391,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
         stateSpinner.setSelection(DataBaseContract.MyRoutesEntry.NOT_DONE);
         gradeSpinner.setSelection(0);
     }
-    //TODO: Add param validation and move to static public context in a Utils class
+
 
 
     /**
@@ -380,6 +401,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
      *                                 2. name of the suggestion column in the
      *                                 given table to retrieve a cursor on the data
      */
+    //TODO: Refactor this to keep the original Cursoradapter and swap it's cursor
     private CursorAdapter queryForSuggestions(final Uri tableUri,
                                                  final String[] columns_Id_and_Suggestions,
                                                  String selection, String[] selectionArgs, String sortOrder) {

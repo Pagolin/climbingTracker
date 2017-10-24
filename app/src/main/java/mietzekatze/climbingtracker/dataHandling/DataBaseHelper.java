@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -25,10 +26,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "SaxonianSwiss.db";
     public static final int DATABASE_VERSION = 1;
-    private AssetManager assetManager;
 
     /**
-     * Strings that defines the SQL statements to be executed to create the ares, summits and
+     * Strings that defines the SQL statements to be executed to create the areas, summits and
      * paths tables
     */
 
@@ -86,7 +86,33 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    }
 
+    /****
+     * Inserting to the Routes Table shall, in contrast to the MyRoutes Tabel not be accessible
+     * to the user or other Apps directly and is therefore not included in the ContentProvider
+     * @return
+     */
+    public Uri insertRoutes(SQLiteDatabase db){
+        Map<String, List<String>> featureMap = HTMLParser.parseHTMLTableToMap(this.context, R.raw.mock_routes);
+        int routes = featureMap.get("Name").size();
+        db.beginTransaction();
+        try{
+            for(int i = 0; i< routes; i++) {
+                db.execSQL("INSERT INTO "+RoutesEntry.TABLE_NAME+
+                        " ("+ RoutesEntry.COLUMN_ROUTES_NAME+","+ RoutesEntry.COLUMN_ROUTES_SUMMIT_ID+
+                        ","+ RoutesEntry.COLUMN_ROUTES_SECURING+ ","+ RoutesEntry.COLUMN_ROUTES_DIFFICULTY+") "+
+                        "VALUES( \""+ featureMap.get("Name").get(i)+ "\","+ "(SELECT "+ SummitEntry.SUMMIT_ID+
+                        " FROM "+SummitEntry.TABLE_NAME+
+                        " WHERE "+SummitEntry.COLUMN_SUMMIT_NAME+"= \"" +
+                        featureMap.get("Gipfel").get(i)+"\")"
+                        + ", \""+featureMap.get("Sicherung").get(i)+ "\",\""+ featureMap.get("Grad").get(i) + "\")");
+            }
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.e("DBHELPER", "Exception inserting rows", e.getCause());
+        }
+        return null;
     }
     private class FillDBTask extends AsyncTask<Void, Void, String>{
         SQLiteDatabase db;
@@ -99,24 +125,39 @@ public class DataBaseHelper extends SQLiteOpenHelper {
         @Override
         protected String doInBackground(Void... voids) {
             this.db.beginTransaction();
-            try{
+            try {
                 ContentValues newRow = new ContentValues();
                 // Fill areas table
-                for(String area : areas.get("Gebiet")){
-                    newRow.put(AreaEntry.COLUMN_AREA_NAME,area);
+                for (String area : areas.get("Gebiet")) {
+                    newRow.put(AreaEntry.COLUMN_AREA_NAME, area);
                     this.db.insert(AreaEntry.TABLE_NAME, null, newRow);
                 }
                 //Fill summits tables
                 Map<String, List<String>> summitsMap = HTMLParser.parseHTMLTableToMap(context, R.raw.summits_all);
                 List<String> summits = summitsMap.get("Gipfel");
                 newRow = new ContentValues();
-                for(int i = 0; i<summits.size(); i++){
+                for (int i = 0; i < summits.size(); i++) {
                     newRow.put(SummitEntry.COLUMN_SUMMIT_NAME, summitsMap.get("Gipfel").get(i));
                     newRow.put(SummitEntry.COLUMN_SUMMIT_AREA, summitsMap.get("Gebiet").get(i));
                     //newRow.put(SummitEntry.COLUMN_SUMMIT_GEOTAG, null);
                     this.db.insert(SummitEntry.TABLE_NAME, null, newRow);
                 }
+                Map<String, List<String>> featureMap = HTMLParser.parseHTMLTableToMap(this.context, R.raw.mock_routes);
+                int routes = featureMap.get("Name").size();
+
+                for (int i = 0; i < routes; i++) {
+                    db.execSQL("INSERT INTO " + RoutesEntry.TABLE_NAME +
+                            " (" + RoutesEntry.COLUMN_ROUTES_NAME + "," + RoutesEntry.COLUMN_ROUTES_SUMMIT_ID +
+                            "," + RoutesEntry.COLUMN_ROUTES_SECURING + "," + RoutesEntry.COLUMN_ROUTES_DIFFICULTY + ") " +
+                            "VALUES( \"" + featureMap.get("Name").get(i) + "\"," + "(SELECT " + SummitEntry.SUMMIT_ID +
+                            " FROM " + SummitEntry.TABLE_NAME +
+                            " WHERE " + SummitEntry.COLUMN_SUMMIT_NAME + "= \"" +
+                            featureMap.get("Gipfel").get(i) + "\")"
+                            + ", \"" + featureMap.get("Sicherung").get(i) + "\",\"" + featureMap.get("Grad").get(i) + "\")");
+                }
                 db.setTransactionSuccessful();
+            }catch (Exception e) {
+                    Log.e("DBHELPER", "Exception inserting rows", e.getCause());
             } finally {
                 this.db.endTransaction();
             }
