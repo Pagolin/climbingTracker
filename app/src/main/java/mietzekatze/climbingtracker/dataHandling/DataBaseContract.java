@@ -77,7 +77,8 @@ public class DataBaseContract {
         public static final Uri AREAS_CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_AREAS);
         public static final String TABLE_NAME = "areas";
         public static final String AREA_ID = BaseColumns._ID;
-        public static final String COLUMN_AREA_NAME = "areaName";
+        public static final String COLUMN_AREA_NAME = "a_name";
+        public static final String COLUMN_SUMMIT_COUNT = "summits_count";
     }
 
     public static final class SummitEntry implements BaseColumns{
@@ -85,8 +86,8 @@ public class DataBaseContract {
         public static final String TABLE_NAME = "summits";
         public static final String SUMMIT_ID = BaseColumns._ID;
         public static final String COLUMN_SUMMIT_NAME = "summitName";
-        public static final String COLUMN_SUMMIT_AREA = "summitArea";
-        public static final String COLUMN_SUMMIT_GEOTAG ="summitGeotag";
+        public static final String COLUMN_ROUTES_COUNT ="routes_count";
+        public static final String COLUMN_SUMMIT_AREA = "a_id";
     }
 
     public static final class RoutesEntry implements BaseColumns{
@@ -94,18 +95,20 @@ public class DataBaseContract {
         public static final String TABLE_NAME = "routes";
         public static final String ROUTE_ID = BaseColumns._ID;
         public static final String COLUMN_ROUTES_NAME = "routeName";
-        public static final String COLUMN_ROUTES_SUMMIT_ID = "routeSummit";
-        public static final String COLUMN_ROUTES_DIFFICULTY = "difficulty";
+        public static final String COLUMN_ROUTES_DIFFICULTY = "Skala_AF";
+        public static final String COLUMN_ROUTE_RATING = "rating";
         //Securing as int from 1 t
         public static final String COLUMN_ROUTES_SECURING = "securing";
-        public static final String COLUMN_ROUTE_RATING = "rating";
-        public static final String COLUMN_ROUTE_DIRECTION = "direction";
+        public static final String COLUMN_ROUTES_INFO = "info";
+        public static final String COLUMN_ROUTES_DIRECTION = "direction";
+        public static final String COLUMN_ROUTES_SUMMIT = "s_id";
+        public static final String COLUMN_ROUTES_AREA = "a_id";
 
     }
 
     public static final class MyRoutesEntry implements BaseColumns{
         public static final Uri MyROUTES_CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH_MyROUTES);
-        public static final String TABLE_NAME = "myRoutes";
+        public static final String TABLE_NAME = "my_routes";
         public static final String MyROUTE_ID = BaseColumns._ID;
         public static final String COLUMN_ROUTE_NAME = "routeName";
         public static final String COLUMN_ROUTE_SUMMIT = "summitName";

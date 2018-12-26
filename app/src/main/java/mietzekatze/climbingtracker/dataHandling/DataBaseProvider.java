@@ -5,6 +5,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,9 @@ import mietzekatze.climbingtracker.R;
 
 public class DataBaseProvider extends ContentProvider {
 
-    private DataBaseHelper dbHelper;
+    //private DataBaseHelper dbHelper;
+    private KletterDBHelper kletterDBHelper;
+    private SQLiteDatabase wegeDB;
     private static final int ALLAreas = 100;
     private static final int SINGLEArea = 101;
     private static final int ALLSummits = 200;
@@ -54,7 +58,13 @@ public class DataBaseProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        dbHelper = new DataBaseHelper(this.getContext());
+        //dbHelper = new DataBaseHelper(this.getContext());
+        kletterDBHelper = new KletterDBHelper(this.getContext());
+        try {
+            kletterDBHelper.updateDataBase();
+        } catch (IOException mIOException) {
+            throw new Error("UnableToUpdateDatabase");
+        }
         return true;
     }
 
@@ -67,46 +77,51 @@ public class DataBaseProvider extends ContentProvider {
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
                         @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        //SQLiteDatabase db = dbHelper.getReadableDatabase();
+        try {
+            wegeDB = kletterDBHelper.getReadableDatabase();
+        } catch (SQLException mSQLException) {
+            throw mSQLException;
+        }
         Cursor cursor;
 
         switch (sUriMatcher.match(uri)) {
             case ALLAreas:
                 if (TextUtils.isEmpty(sortOrder)) sortOrder = "_ID ASC";
-                cursor = db.query(DataBaseContract.AreaEntry.TABLE_NAME, projection, selection,
+                cursor = wegeDB.query(DataBaseContract.AreaEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
             case SINGLEArea:
                 selection = "_ID = ?";
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
-                cursor = db.query(DataBaseContract.AreaEntry.TABLE_NAME, projection, selection,
+                cursor = wegeDB.query(DataBaseContract.AreaEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
 
             case ALLSummits:
                 if (TextUtils.isEmpty(sortOrder)) sortOrder = "_ID ASC";
-                cursor = db.query(DataBaseContract.SummitEntry.TABLE_NAME, projection, selection,
+                cursor = wegeDB.query(DataBaseContract.SummitEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
             case SINGLESummit:
                 selection = "_ID = ?";
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
-                cursor = db.query(DataBaseContract.SummitEntry.TABLE_NAME, projection, selection,
+                cursor = wegeDB.query(DataBaseContract.SummitEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
             case ALLRoutes:
                 if (TextUtils.isEmpty(sortOrder)) sortOrder = "_ID ASC";
-                cursor = db.query(DataBaseContract.RoutesEntry.TABLE_NAME, projection, selection,
+                cursor = wegeDB.query(DataBaseContract.RoutesEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
             case SINGLERoute:
                 selection = "_ID = ?";
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
-                cursor = db.query(DataBaseContract.RoutesEntry.TABLE_NAME, projection, selection,
+                cursor = wegeDB.query(DataBaseContract.RoutesEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
             case ALLMyRoutes:
                 if (TextUtils.isEmpty(sortOrder)) sortOrder = "_ID ASC";
-                cursor = db.query(DataBaseContract.MyRoutesEntry.TABLE_NAME, projection, selection,
+                cursor = wegeDB.query(DataBaseContract.MyRoutesEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
             case SINGLEMyRoute:
                 selection = "_ID = ?";
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
-                cursor = db.query(DataBaseContract.MyRoutesEntry.TABLE_NAME, projection, selection,
+                cursor = wegeDB.query(DataBaseContract.MyRoutesEntry.TABLE_NAME, projection, selection,
                         selectionArgs, null, null, sortOrder); break;
             default:
                 throw new IllegalArgumentException("Can't parse unknown Uri" + uri);
@@ -147,11 +162,15 @@ public class DataBaseProvider extends ContentProvider {
 
     @Nullable
     private Uri insertMyRoute(Uri uri, ContentValues contentValues) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
+        //SQLiteDatabase db = dbHelper.getWritableDatabase();
+        try {
+            wegeDB = kletterDBHelper.getWritableDatabase();
+        } catch (SQLException mSQLException) {
+            throw mSQLException;
+        }
         try {
             sanityCheck(contentValues);
-            long newRowId = db.insert(uri.getLastPathSegment(),null,contentValues);
+            long newRowId = wegeDB.insert(uri.getLastPathSegment(),null,contentValues);
             if (newRowId == -1) {
                 Toast.makeText(this.getContext(), "Error with saving route", Toast.LENGTH_SHORT).show();
                 return null;
@@ -187,14 +206,22 @@ public class DataBaseProvider extends ContentProvider {
      **********************************************************************************************/
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        //SQLiteDatabase database = dbHelper.getWritableDatabase();
+
+
+        try {
+            wegeDB = kletterDBHelper.getWritableDatabase();
+        } catch (SQLException mSQLException) {
+            throw mSQLException;
+        }
         int rowsDeleted;
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case SINGLEMyRoute:
                 selection = DataBaseContract.MyRoutesEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
-                rowsDeleted = database.delete(DataBaseContract.MyRoutesEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = wegeDB.delete(DataBaseContract.MyRoutesEntry.TABLE_NAME, selection,
+                        selectionArgs);
                 getContext().getContentResolver().notifyChange(uri, null);
                 Log.i("DBProvider: ", "deleted rows: "+ rowsDeleted);
                 break;
@@ -228,11 +255,16 @@ public class DataBaseProvider extends ContentProvider {
     }
 
     private int updateMyRoute(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        try {
+            wegeDB = kletterDBHelper.getWritableDatabase();
+        } catch (SQLException mSQLException) {
+            throw mSQLException;
+        }
         //TODO: Extend functionality to use foreign keys for summit and if necessary insert summit
         try {
             sanityCheck(contentValues);
-            int nrOfUpdatedRows = db.update(DataBaseContract.MyRoutesEntry.TABLE_NAME, contentValues, selection, selectionArgs);
+            int nrOfUpdatedRows = wegeDB.update(DataBaseContract.MyRoutesEntry.TABLE_NAME,
+                    contentValues, selection, selectionArgs);
             Toast.makeText(this.getContext(), "Changed "+nrOfUpdatedRows+ " rows", Toast.LENGTH_SHORT).show();
             return nrOfUpdatedRows;
         }

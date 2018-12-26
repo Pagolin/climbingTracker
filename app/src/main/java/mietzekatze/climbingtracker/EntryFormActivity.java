@@ -177,7 +177,7 @@ public class EntryFormActivity extends AppCompatActivity implements LoaderManage
                 routeSuggestionsAdapter = queryForSuggestions(DataBaseContract.RoutesEntry.ROUTES_CONTENT_URI,
                                             new String[]{DataBaseContract.RoutesEntry.ROUTE_ID,
                                             DataBaseContract.RoutesEntry.COLUMN_ROUTES_NAME},
-                                            DataBaseContract.RoutesEntry.COLUMN_ROUTES_SUMMIT_ID + " = ?",
+                                            DataBaseContract.RoutesEntry.COLUMN_ROUTES_SUMMIT + " = ?",
                                             new String[]{String.valueOf(id)}, null);
                 Log.i("Routadapter: ", "Count: " + routeSuggestionsAdapter.getCount());
                 routeEditText.setAdapter(routeSuggestionsAdapter);

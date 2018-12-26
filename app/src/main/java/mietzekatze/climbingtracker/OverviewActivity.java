@@ -13,22 +13,16 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
 import mietzekatze.climbingtracker.dataHandling.DataBaseContract.*;
-import mietzekatze.climbingtracker.dataHandling.DataBaseHelper;
+import mietzekatze.climbingtracker.dataHandling.KletterDBHelper;
 
 
 public class OverviewActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
@@ -42,8 +36,10 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
             MyRoutesEntry.COLUMN_ROUTE_DATE};
     public static String[] ROUTES_PROJECTION = {  MyRoutesEntry._ID,
             RoutesEntry.COLUMN_ROUTES_NAME,
-            RoutesEntry.COLUMN_ROUTES_SUMMIT_ID,
+            RoutesEntry.COLUMN_ROUTES_SUMMIT,
             RoutesEntry.COLUMN_ROUTES_DIFFICULTY};
+    private KletterDBHelper kdbHelper;
+    private SQLiteDatabase wegeDB;
 
     Cursor myRoutesCursor;
     MyRoutesCursorAdapter myRoutesCursorAdapter;
@@ -84,7 +80,8 @@ public class OverviewActivity extends AppCompatActivity implements LoaderManager
         routesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long itemId) {
-                Uri routeUri = ContentUris.withAppendedId(MyRoutesEntry.MyROUTES_CONTENT_URI, itemId);
+                Uri routeUri = ContentUris.withAppendedId(MyRoutesEntry.MyROUTES_CONTENT_URI,
+                        itemId);
                 Intent editRouteIntent = new Intent(OverviewActivity.this, EntryFormActivity.class);
                 editRouteIntent.setData(routeUri);
                 startActivity(editRouteIntent);

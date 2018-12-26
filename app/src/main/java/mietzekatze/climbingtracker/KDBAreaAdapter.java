@@ -15,16 +15,11 @@ import mietzekatze.climbingtracker.dataHandling.DataBaseContract;
 
 import static mietzekatze.climbingtracker.dataHandling.DataBaseContract.scalesAndGrades;
 
-/**
- * Created by lisza on 08.10.17.
- */
-
-public class RoutesCursorAdapter extends CursorAdapter {
-
+public class KDBAreaAdapter extends CursorAdapter {
     private Context context;
     private String[] currentScale;
 
-    public RoutesCursorAdapter(Context context, Cursor cursor){
+    public KDBAreaAdapter(Context context,Cursor cursor){
         super(context,cursor, 0);
         this.context = context;
         currentScale = scalesAndGrades.get(OverviewActivity.currentScalePreference);
@@ -41,25 +36,21 @@ public class RoutesCursorAdapter extends CursorAdapter {
         TextView areaNameField = view.findViewById(R.id.area_name_slot);
         TextView difficField = view.findViewById(R.id.difficulty_slot);
         GradientDrawable coloredCircle = (GradientDrawable) difficField.getBackground();
+        TextView dateSlot = view.findViewById(R.id.date_slot);
 
-        
 
-        int indexOfRoute = cursor.getColumnIndexOrThrow(DataBaseContract.RoutesEntry.COLUMN_ROUTES_NAME);
-        int indexOfSummit = cursor.getColumnIndexOrThrow(DataBaseContract.RoutesEntry.COLUMN_ROUTES_SUMMIT);
-        /*
-        int indexOfArea = cursor.getColumnIndexOrThrow(DataBaseContract.MyRoutesEntry.COLUMN_ROUTES_AREA);
-         */
-        int indexOfDifficulty = cursor.getColumnIndexOrThrow(DataBaseContract.RoutesEntry.COLUMN_ROUTES_DIFFICULTY);
+        int indexOfID = cursor.getColumnIndexOrThrow("_id");
+        int indexOfName = cursor.getColumnIndexOrThrow("a_name");
+        int indexOfSummitCount = cursor.getColumnIndexOrThrow("summits_count");
 
-        int difficulty = cursor.getInt(indexOfDifficulty);
-        String route  = cursor.getString(indexOfRoute);
-        String summit  = cursor.getString(indexOfSummit);
-        //String area  = cursor.getString(indexOfArea);
+        int a_id = cursor.getInt(indexOfID);
+        String Name = cursor.getString(indexOfName);
+        int summit_count = cursor.getInt(indexOfSummitCount);
 
-        routeAndSummitField.setText(summit + ", "+ route);
-        //areaNameField.setText(area);
-        difficField.setText(currentScale[difficulty]);
-        coloredCircle.setColor(selectColor(difficulty));
+        routeAndSummitField.setText(summit_count + " Gipfel");
+        areaNameField.setText(Name);
+        difficField.setText(String.valueOf(a_id));
+        coloredCircle.setColor(selectColor(a_id));
     }
 
     private int selectColor(int difficulty) {
@@ -106,6 +97,4 @@ public class RoutesCursorAdapter extends CursorAdapter {
         float relativeGrade = (difficulty/countGrades) *10;
         return Math.round(relativeGrade);
     }
-
-
 }
